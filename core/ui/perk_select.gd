@@ -6,6 +6,9 @@ func _ready() -> void:
 	hide()
 	EventBus.on("show_perks", _on_show_perks)
 
+func _exit_tree() -> void:
+	EventBus.off("show_perks", _on_show_perks)
+
 func _on_show_perks(_data = null) -> void:
 	_current_perks = ConfigLoader.get_random_perks(3)
 	if _current_perks.size() == 0:

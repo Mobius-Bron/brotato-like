@@ -11,6 +11,9 @@ func _ready() -> void:
 	hide()
 	EventBus.on("show_shop", _on_show_shop)
 
+func _exit_tree() -> void:
+	EventBus.off("show_shop", _on_show_shop)
+
 func _on_show_shop(_data = null) -> void:
 	await get_tree().create_timer(0.5).timeout
 	generate_shop()

@@ -11,21 +11,18 @@ var _spawn_system: SpawnSystem
 var _lifetime_system: LifetimeSystem
 var _enemy_factory: EnemyFactory
 var _projectile_factory: ProjectileFactory
-var _player_ids: Array = []
+var _player_id: int = -1
 var _between_waves: bool = false
 var _paused: bool = false
 var _map_size: Vector2
 var _player_camera: Camera2D
-var _is_multiplayer: bool = false
-var _player_colors: Array = []
-var _player_dead: Dictionary = {}
+var _player_dead: bool = false
 
 @onready var _mud_layer: Node2D = $MudLayer
 @onready var _render_layer: Node2D = $RenderLayer
 @onready var _hud: CanvasLayer = $HUD
 
 func _ready() -> void:
-	_is_multiplayer = MultiplayerManager.is_online
 	_map_size = MapConfig.get_size()
 
 	_setup_map_layers()
@@ -61,55 +58,17 @@ func _ready() -> void:
 	var char_skin = _get_character_skin(GameManager.selected_character)
 	_create_player(char_skin)
 	_spawn_weapon_entities()
-
 	_spawn_system.start_wave(GameManager.current_wave)
 
-func _setup_connections() -> void:
-	EventBus.on("enemy_killed", _on_enemy_killed)
-	EventBus.on("player_died", _on_player_died)
-	EventBus.on("wave_cleared", _on_wave_cleared)
-	EventBus.on("player_heal", _on_player_heal)
-	EventBus.on("perks_done", _on_perks_done)
-
-func _get_character_skin(char_id: String) -> Dictionary:
-	match char_id:
-		"berserker":
-			return {"body": Color(0.85, 0.22, 0.15, 1.0), "inner": Color(0.55, 0.08, 0.05, 1.0), "eyes": Color(1.0, 0.9, 0.2, 0.95), "size": 30.0, "shape": "hexagon"}
-		"ranger":
-			return {"body": Color(0.12, 0.45, 0.22, 1.0), "inner": Color(0.05, 0.30, 0.10, 1.0), "eyes": Color(1.0, 1.0, 1.0, 0.95), "size": 26.0, "shape": "triangle"}
-		"shotgunner":
-			return {"body": Color(0.70, 0.45, 0.12, 1.0), "inner": Color(0.40, 0.22, 0.05, 1.0), "eyes": Color(1.0, 0.8, 0.0, 0.95), "size": 28.0, "shape": "rect"}
-		"juggernaut":
-			return {"body": Color(0.25, 0.28, 0.35, 1.0), "inner": Color(0.10, 0.12, 0.18, 1.0), "eyes": Color(1.0, 0.4, 0.2, 0.95), "size": 34.0, "shape": "hexagon"}
-		"shadow":
-			return {"body": Color(0.18, 0.08, 0.28, 1.0), "inner": Color(0.08, 0.02, 0.12, 1.0), "eyes": Color(0.9, 0.1, 0.8, 0.95), "size": 24.0, "shape": "diamond"}
-		"engineer":
-			return {"body": Color(0.90, 0.60, 0.12, 1.0), "inner": Color(0.60, 0.35, 0.05, 1.0), "eyes": Color(0.0, 0.6, 1.0, 0.95), "size": 28.0, "shape": "rect"}
-		"plague_doctor":
-			return {"body": Color(0.15, 0.42, 0.20, 1.0), "inner": Color(0.05, 0.25, 0.10, 1.0), "eyes": Color(0.9, 0.9, 0.0, 0.95), "size": 27.0, "shape": "hexagon"}
-		"merchant":
-			return {"body": Color(0.65, 0.45, 0.15, 1.0), "inner": Color(0.40, 0.25, 0.05, 1.0), "eyes": Color(1.0, 0.85, 0.0, 0.95), "size": 25.0, "shape": "rect"}
-		"gladiator":
-			return {"body": Color(0.75, 0.30, 0.08, 1.0), "inner": Color(0.45, 0.12, 0.04, 1.0), "eyes": Color(1.0, 1.0, 1.0, 0.95), "size": 30.0, "shape": "hexagon"}
-		"elementalist":
-			return {"body": Color(0.20, 0.30, 0.70, 1.0), "inner": Color(0.08, 0.12, 0.40, 1.0), "eyes": Color(0.3, 1.0, 1.0, 0.95), "size": 26.0, "shape": "diamond"}
-		"survivor":
-			return {"body": Color(0.30, 0.35, 0.25, 1.0), "inner": Color(0.12, 0.15, 0.08, 1.0), "eyes": Color(0.8, 0.8, 0.8, 0.95), "size": 27.0, "shape": "circle"}
-		"lucky":
-			return {"body": Color(0.90, 0.75, 0.15, 1.0), "inner": Color(0.60, 0.50, 0.05, 1.0), "eyes": Color(0.0, 0.9, 0.0, 0.95), "size": 26.0, "shape": "triangle"}
-		_:
-			return {"body": Color(0.0, 0.74, 0.83, 1.0), "inner": Color(0.0, 0.45, 0.55, 1.0), "eyes": Color(1.0, 1.0, 1.0, 0.95), "size": 28.0, "shape": "circle"}
-
 func _create_player(skin: Dictionary = {}) -> void:
-	var pid = _world.create_entity()
-	_player_ids.append(pid)
+	_player_id = _world.create_entity()
 	var center = _map_size * 0.5
 
 	var base_hp = 50 + GameManager.stat_bonuses.get("max_hp", 0)
-	_world.transforms[pid] = {"position": center}
-	_world.healths[pid] = {"current_hp": base_hp, "max_hp": base_hp, "invincible_time": 0.8, "invincible_timer": 0.0}
-	_world.movements[pid] = {"speed": 180 + GameManager.stat_bonuses.get("speed", 0), "direction": Vector2.ZERO, "is_player": true}
-	_world.collisions[pid] = {"radius": 14.0}
+	_world.transforms[_player_id] = {"position": center}
+	_world.healths[_player_id] = {"current_hp": base_hp, "max_hp": base_hp, "invincible_time": 0.8, "invincible_timer": 0.0}
+	_world.movements[_player_id] = {"speed": 180 + GameManager.stat_bonuses.get("speed", 0), "direction": Vector2.ZERO, "is_player": true}
+	_world.collisions[_player_id] = {"radius": 14.0}
 
 	var body_color = skin.get("body", Color(0.0, 0.74, 0.83, 1.0))
 	var dark = skin.get("inner", Color(0.0, 0.45, 0.55, 1.0))
@@ -117,7 +76,7 @@ func _create_player(skin: Dictionary = {}) -> void:
 	var black = Color(0.0, 0.0, 0.0, 0.85)
 	var ps = skin.get("size", 28.0)
 
-	_world.sprites[pid] = {
+	_world.sprites[_player_id] = {
 		"shape": "composite",
 		"color": Color.WHITE,
 		"size": ps,
@@ -133,26 +92,77 @@ func _create_player(skin: Dictionary = {}) -> void:
 			{"shape": "circle", "offset": Vector2(ps * 0.18, -ps * 0.14), "color": black, "size": ps * 0.13},
 		]
 	}
-	_world.players[pid] = {}
-	_player_dead[pid] = false
+	_world.players[_player_id] = {}
+	_player_dead = false
+
+func _setup_connections() -> void:
+	EventBus.on("enemy_killed", _on_enemy_killed)
+	EventBus.on("player_died", _on_player_died)
+	EventBus.on("wave_cleared", _on_wave_cleared)
+	EventBus.on("player_heal", _on_player_heal)
+	EventBus.on("perks_done", _on_perks_done)
+
+func _exit_tree() -> void:
+	EventBus.off("enemy_killed", _on_enemy_killed)
+	EventBus.off("player_died", _on_player_died)
+	EventBus.off("wave_cleared", _on_wave_cleared)
+	EventBus.off("player_heal", _on_player_heal)
+	EventBus.off("perks_done", _on_perks_done)
+
+func _get_character_skin(char_id: String) -> Dictionary:
+	match char_id:
+		"berserker":
+			return {"body": Color(0.85, 0.22, 0.15, 1.0), "inner": Color(0.55, 0.08, 0.05, 1.0), "eyes": Color(1.0, 0.9, 0.2, 0.95), "size": 30.0}
+		"ranger":
+			return {"body": Color(0.12, 0.45, 0.22, 1.0), "inner": Color(0.05, 0.30, 0.10, 1.0), "eyes": Color(1.0, 1.0, 1.0, 0.95), "size": 26.0}
+		"shotgunner":
+			return {"body": Color(0.70, 0.45, 0.12, 1.0), "inner": Color(0.40, 0.22, 0.05, 1.0), "eyes": Color(1.0, 0.8, 0.0, 0.95), "size": 28.0}
+		"juggernaut":
+			return {"body": Color(0.25, 0.28, 0.35, 1.0), "inner": Color(0.10, 0.12, 0.18, 1.0), "eyes": Color(1.0, 0.4, 0.2, 0.95), "size": 34.0}
+		"shadow":
+			return {"body": Color(0.18, 0.08, 0.28, 1.0), "inner": Color(0.08, 0.02, 0.12, 1.0), "eyes": Color(0.9, 0.1, 0.8, 0.95), "size": 24.0}
+		"engineer":
+			return {"body": Color(0.90, 0.60, 0.12, 1.0), "inner": Color(0.60, 0.35, 0.05, 1.0), "eyes": Color(0.0, 0.6, 1.0, 0.95), "size": 28.0}
+		"plague_doctor":
+			return {"body": Color(0.15, 0.42, 0.20, 1.0), "inner": Color(0.05, 0.25, 0.10, 1.0), "eyes": Color(0.9, 0.9, 0.0, 0.95), "size": 27.0}
+		"merchant":
+			return {"body": Color(0.65, 0.45, 0.15, 1.0), "inner": Color(0.40, 0.25, 0.05, 1.0), "eyes": Color(1.0, 0.85, 0.0, 0.95), "size": 25.0}
+		"gladiator":
+			return {"body": Color(0.75, 0.30, 0.08, 1.0), "inner": Color(0.45, 0.12, 0.04, 1.0), "eyes": Color(1.0, 1.0, 1.0, 0.95), "size": 30.0}
+		"elementalist":
+			return {"body": Color(0.20, 0.30, 0.70, 1.0), "inner": Color(0.08, 0.12, 0.40, 1.0), "eyes": Color(0.3, 1.0, 1.0, 0.95), "size": 26.0}
+		"survivor":
+			return {"body": Color(0.30, 0.35, 0.25, 1.0), "inner": Color(0.12, 0.15, 0.08, 1.0), "eyes": Color(0.8, 0.8, 0.8, 0.95), "size": 27.0}
+		"lucky":
+			return {"body": Color(0.90, 0.75, 0.15, 1.0), "inner": Color(0.60, 0.50, 0.05, 1.0), "eyes": Color(0.0, 0.9, 0.0, 0.95), "size": 26.0}
+		"cannoneer":
+			return {"body": Color(0.55, 0.20, 0.08, 1.0), "inner": Color(0.30, 0.08, 0.02, 1.0), "eyes": Color(1.0, 0.6, 0.0, 0.95), "size": 32.0}
+		"generalist":
+			return {"body": Color(0.40, 0.50, 0.60, 1.0), "inner": Color(0.20, 0.28, 0.35, 1.0), "eyes": Color(0.8, 0.9, 1.0, 0.95), "size": 26.0}
+		"swordsman":
+			return {"body": Color(0.30, 0.50, 0.70, 1.0), "inner": Color(0.12, 0.28, 0.45, 1.0), "eyes": Color(1.0, 1.0, 1.0, 0.95), "size": 28.0}
+		_:
+			return {"body": Color(0.0, 0.74, 0.83, 1.0), "inner": Color(0.0, 0.45, 0.55, 1.0), "eyes": Color(1.0, 1.0, 1.0, 0.95), "size": 28.0}
 
 func _spawn_weapon_entities() -> void:
 	_destroy_all_weapon_entities()
 
 	var weapon_ids = GameManager.owned_weapons
 	var total = weapon_ids.size()
+	var max_slots = GameManager.get_weapon_slots()
+	var effective_count = min(total, max_slots)
 
-	for i in range(total):
+	for i in range(effective_count):
 		var weid = _world.create_entity()
 		var weapon_data = WeaponFactory.create_weapon_component(weapon_ids[i])
 		if weapon_data.is_empty():
 			_world.destroy_entity(weid)
 			continue
 		weapon_data = WeaponFactory.apply_stat_bonuses(weapon_data, GameManager.stat_bonuses)
+		var slot_mult = GameManager.weapon_slot_damage_mult()
+		weapon_data["damage"] = int(weapon_data["damage"] * slot_mult)
 
 		var cfg = ConfigLoader.get_weapon(weapon_ids[i])
-		var is_melee = cfg.get("melee", false)
-		var ecosys = cfg.get("ecosystem", "weapon")
 		var color = Color.WHITE
 		if not cfg.is_empty():
 			color = _hex_to_color(cfg.get("bullet_color", "FFFFFF"))
@@ -171,7 +181,7 @@ func _spawn_weapon_entities() -> void:
 			"sub_sprites": subs
 		}
 		_world.weapons[weid] = weapon_data
-		_world.weapon_entities[weid] = {"index": i, "total": total, "owner_id": _player_ids[0]}
+		_world.weapon_entities[weid] = {"index": i, "total": effective_count, "owner_id": _player_id}
 
 func _make_weapon_subs(cfg: Dictionary, color: Color, size: float) -> Array:
 	var bright = Color(min(color.r * 1.3, 1.0), min(color.g * 1.3, 1.0), min(color.b * 1.3, 1.0), 1.0)
@@ -260,21 +270,20 @@ func _process(delta: float) -> void:
 	_update_camera()
 
 func _collect_xp_orbs(_delta: float) -> void:
-	for pid in _player_ids:
-		if not _world.transforms.has(pid) or _player_dead.get(pid, false):
-			continue
-		var player_pos = _world.transforms[pid]["position"]
-		var pickup_radius = 40.0 + GameManager.stat_bonuses.get("pickup_radius", 0)
+	if _player_dead or not _world.transforms.has(_player_id):
+		return
+	var player_pos = _world.transforms[_player_id]["position"]
+	var pickup_radius = 40.0 + GameManager.stat_bonuses.get("pickup_radius", 0)
 
-		for xid in _world.xp_orbs.keys().duplicate():
-			if not _world.transforms.has(xid):
-				continue
-			var orb_pos = _world.transforms[xid]["position"]
-			var dist = player_pos.distance_to(orb_pos)
-			if dist < pickup_radius:
-				var xp_val = _world.xp_orbs[xid]["xp_value"]
-				GameManager.add_exp(xp_val)
-				_world.destroy_entity(xid)
+	for xid in _world.xp_orbs.keys().duplicate():
+		if not _world.transforms.has(xid):
+			continue
+		var orb_pos = _world.transforms[xid]["position"]
+		var dist = player_pos.distance_to(orb_pos)
+		if dist < pickup_radius:
+			var xp_val = _world.xp_orbs[xid]["xp_value"]
+			GameManager.add_exp(xp_val)
+			_world.destroy_entity(xid)
 
 func _on_perks_done(_data = null) -> void:
 	_paused = false
@@ -284,9 +293,8 @@ func _on_perks_done(_data = null) -> void:
 func _update_camera() -> void:
 	if not _player_camera:
 		return
-	var main_pid = _player_ids[0] if _player_ids.size() > 0 else -1
-	if main_pid != -1 and _world.transforms.has(main_pid):
-		var target = _world.transforms[main_pid]["position"]
+	if _player_id != -1 and _world.transforms.has(_player_id):
+		var target = _world.transforms[_player_id]["position"]
 		_player_camera.global_position = _player_camera.global_position.lerp(target, 0.15)
 
 func _on_enemy_killed(data: Dictionary) -> void:
@@ -317,31 +325,7 @@ func _create_xp_orb(pos: Vector2, value: int) -> void:
 	_world.xp_orbs[eid] = {"xp_value": value}
 
 func _on_player_died(_data = null) -> void:
-	if _is_multiplayer and _player_ids.size() > 0:
-		var main_pid = _player_ids[0]
-		_player_dead[main_pid] = true
-		if _all_players_dead():
-			_end_game(false)
-		return
-
 	_end_game(false)
-
-func _all_players_dead() -> bool:
-	for pid in _player_ids:
-		if not _player_dead.get(pid, false):
-			return false
-	return true
-
-func _revive_dead_players() -> void:
-	for pid in _player_ids:
-		if _player_dead.get(pid, false):
-			_player_dead[pid] = false
-			var base_hp = 50 + GameManager.stat_bonuses.get("max_hp", 0)
-			var half_hp = int(base_hp * 0.5)
-			var center = _map_size * 0.5
-			_world.healths[pid] = {"current_hp": half_hp, "max_hp": base_hp, "invincible_time": 2.0, "invincible_timer": 2.0}
-			_world.transforms[pid] = {"position": center}
-			_world.players[pid] = {}
 
 func _end_game(won: bool) -> void:
 	GameManager.set_state(GameManager.State.LOSE if not won else GameManager.State.WIN)
@@ -355,9 +339,6 @@ func _end_game(won: bool) -> void:
 
 func _on_wave_cleared(_data = null) -> void:
 	_clear_all_enemies()
-
-	if _is_multiplayer:
-		_revive_dead_players()
 
 	if GameManager.pending_levels > 0:
 		_between_waves = true
@@ -385,31 +366,23 @@ func start_next_wave() -> void:
 	_spawn_system.start_wave(GameManager.current_wave)
 
 func _refresh_player_stats() -> void:
-	for pid in _player_ids:
-		if not _world.players.has(pid):
-			continue
-		var base_hp = 50 + GameManager.stat_bonuses.get("max_hp", 0)
-		var hp = _world.healths[pid]
-		hp["max_hp"] = base_hp
-		hp["current_hp"] = min(hp["current_hp"], base_hp)
-		_world.movements[pid]["speed"] = 180 + GameManager.stat_bonuses.get("speed", 0)
-
-	var boss_id = ["boss_tank","boss_assassin","boss_overlord","boss_wurm","boss_dragon","boss_colossus","boss_hydra","boss_phantom","boss_guardian","boss_summoner","boss_lich"][(GameManager.current_wave - 1) % 11]
-	if _spawn_system:
-		_spawn_system.set_boss_id(boss_id)
+	if not _world.players.has(_player_id):
+		return
+	var base_hp = 50 + GameManager.stat_bonuses.get("max_hp", 0)
+	var hp = _world.healths[_player_id]
+	hp["max_hp"] = base_hp
+	hp["current_hp"] = min(hp["current_hp"], base_hp)
+	_world.movements[_player_id]["speed"] = 180 + GameManager.stat_bonuses.get("speed", 0)
 
 func _on_player_heal(amount: int) -> void:
-	if not _world:
+	if not _world or not _world.healths.has(_player_id):
 		return
-	for pid in _player_ids:
-		if _world.healths.has(pid):
-			var hp = _world.healths[pid]
-			hp["current_hp"] = min(hp["current_hp"] + amount, hp["max_hp"])
+	var hp = _world.healths[_player_id]
+	hp["current_hp"] = min(hp["current_hp"] + amount, hp["max_hp"])
 
 func _update_hud() -> void:
-	var main_pid = _player_ids[0] if _player_ids.size() > 0 else -1
-	if main_pid != -1 and _world.healths.has(main_pid):
-		var hp = _world.healths[main_pid]
+	if _player_id != -1 and _world.healths.has(_player_id):
+		var hp = _world.healths[_player_id]
 		_hud.get_node("HealthBar").max_value = hp["max_hp"]
 		_hud.get_node("HealthBar").value = hp["current_hp"]
 		_hud.get_node("HealthLabel").text = "HP: %d/%d" % [hp["current_hp"], hp["max_hp"]]
@@ -422,8 +395,9 @@ func _update_hud() -> void:
 		_hud.get_node("ExpBar").max_value = GameManager.exp_to_next
 		_hud.get_node("ExpBar").value = GameManager.player_exp
 
-	var wave_timer = _spawn_system._wave_timer
-	_hud.get_node("TimerLabel").text = "剩余: %.0fs" % wave_timer
+	if _spawn_system:
+		var wt = _spawn_system._wave_timer
+		_hud.get_node("TimerLabel").text = "剩余: %.0fs" % wt
 
 func _hex_to_color(hex: String) -> Color:
 	if hex.length() < 6:

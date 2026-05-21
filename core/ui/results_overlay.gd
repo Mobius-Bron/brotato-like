@@ -4,6 +4,9 @@ func _ready() -> void:
 	hide()
 	EventBus.on("game_over", _on_game_over)
 
+func _exit_tree() -> void:
+	EventBus.off("game_over", _on_game_over)
+
 func _on_game_over(data: Dictionary) -> void:
 	var won = data.get("won", false)
 	$Panel/VBoxContainer/TitleLabel.text = "胜利！" if won else "阵亡"

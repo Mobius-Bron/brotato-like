@@ -14,6 +14,9 @@ var owned_weapons: Array = ["pistol"]
 var selected_character: String = ""
 var perk_choices: Array = []
 var pending_levels: int = 0
+var weapon_slots: int = 6
+var weapon_damage_mult: float = 1.0
+var weapon_range_mult: float = 1.0
 
 var stat_bonuses := {
 	"max_hp": 0,
@@ -50,6 +53,9 @@ func reset() -> void:
 	kills = 0
 	selected_character = ""
 	pending_levels = 0
+	weapon_slots = 6
+	weapon_damage_mult = 1.0
+	weapon_range_mult = 1.0
 	stat_bonuses = {
 		"max_hp": 0,
 		"hp_regen": 0,
@@ -80,6 +86,9 @@ func apply_character(character_id: String) -> void:
 		owned_weapons = ["pistol"]
 		return
 	owned_weapons = cfg.get("starting_weapons", ["pistol"])
+	weapon_slots = cfg.get("weapon_slots", 6)
+	weapon_damage_mult = cfg.get("weapon_damage_mult", 1.0)
+	weapon_range_mult = cfg.get("weapon_range_mult", 1.0)
 	var mods = cfg.get("stat_modifiers", {})
 	for key in mods:
 		if stat_bonuses.has(key):
@@ -144,9 +153,18 @@ func apply_perk(perk_id: String) -> void:
 	pending_levels -= 1
 
 func add_weapon(weapon_id: String) -> void:
-	if owned_weapons.size() >= 6:
+	if owned_weapons.size() >= weapon_slots:
 		return
 	owned_weapons.append(weapon_id)
+
+func get_weapon_slots() -> int:
+	return weapon_slots
+
+func weapon_slot_damage_mult() -> float:
+	return weapon_damage_mult
+
+func weapon_slot_range_mult() -> float:
+	return weapon_range_mult
 
 func remove_weapon(weapon_id: String) -> void:
 	var idx = owned_weapons.find(weapon_id)

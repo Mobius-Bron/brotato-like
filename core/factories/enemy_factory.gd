@@ -3,10 +3,14 @@ extends RefCounted
 
 var _world: ECSWorld
 var _map_size: Vector2
+var _current_wave: int = 1
 
 func _init(world: ECSWorld, map_size: Vector2) -> void:
 	_world = world
 	_map_size = map_size
+
+func set_wave(wave: int) -> void:
+	_current_wave = wave
 
 func create_enemy(enemy_id: String, position: Vector2 = Vector2.ZERO) -> int:
 	var cfg = ConfigLoader.get_enemy(enemy_id)
@@ -18,17 +22,30 @@ func create_enemy(enemy_id: String, position: Vector2 = Vector2.ZERO) -> int:
 	if pos == Vector2.ZERO:
 		pos = _random_edge_position()
 
+	var is_boss = cfg.get("is_boss", false)
+	var wave_scale = _get_wave_scale()
+
+	var base_hp = cfg["hp"]
+	var base_dmg = cfg["damage"]
+	var base_size = cfg["size"]
+
+	var hp = int(base_hp * wave_scale["hp"])
+	var dmg = int(base_dmg * wave_scale["damage"])
+	if is_boss:
+		dmg = int(dmg * 1.5)
+
 	_world.transforms[eid] = {"position": pos}
-	_world.healths[eid] = {"current_hp": cfg["hp"], "max_hp": cfg["hp"], "invincible_time": 0.1, "invincible_timer": 0.0}
+	_world.healths[eid] = {"current_hp": hp, "max_hp": hp, "invincible_time": 0.1, "invincible_timer": 0.0}
 	_world.movements[eid] = {"speed": cfg["speed"], "direction": Vector2.ZERO, "is_player": false}
-	_world.collisions[eid] = {"radius": cfg["size"] * 0.5}
+	_world.collisions[eid] = {"radius": base_size * 0.5}
 	_world.sprites[eid] = _make_enemy_sprite(cfg)
 	_world.enemies[eid] = {
 		"enemy_id": enemy_id,
-		"damage": cfg["damage"],
-		"xp_drop": cfg["xp_drop"],
-		"coin_drop": cfg["coin_drop"],
-		"is_boss": cfg.get("is_boss", false),
+		"damage": dmg,
+		"xp_drop": int(cfg["xp_drop"] * wave_scale["reward"]),
+		"coin_drop": int(cfg["coin_drop"] * wave_scale["reward"]),
+		"is_boss": is_boss,
+		"is_elite": cfg.get("is_elite", false),
 		"base_speed": cfg["speed"]
 	}
 
@@ -37,6 +54,13 @@ func create_enemy(enemy_id: String, position: Vector2 = Vector2.ZERO) -> int:
 		_world.weapons[eid] = WeaponFactory.create_weapon_component(weapon_id)
 
 	return eid
+
+func _get_wave_scale() -> Dictionary:
+	var w = float(_current_wave)
+	var hp_scale = 1.0 + (w - 1.0) * 0.1
+	var dmg_scale = 1.0 + (w - 1.0) * 0.06
+	var reward_scale = 1.0 + (w - 1.0) * 0.08
+	return {"hp": hp_scale, "damage": dmg_scale, "reward": reward_scale}
 
 func _random_edge_position() -> Vector2:
 	var spawn_margin = MapConfig.SPAWN_MARGIN

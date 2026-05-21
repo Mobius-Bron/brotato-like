@@ -2,92 +2,161 @@
   {
     "id": "soldier",
     "name": "士兵",
-    "desc": "均衡全能型，攻防兼备。手枪开局。",
+    "desc": "均衡型，4武器槽。所有属性+5%。初始手枪x1。",
     "starting_weapons": ["pistol"],
+    "weapon_slots": 4,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
     "stat_modifiers": {"max_hp": 5, "speed": 5, "damage": 2, "damage_percent": 0.05}
   },
   {
     "id": "berserker",
     "name": "狂战士",
-    "desc": "双持近战专家，每拥有近战武器+5%攻速。只使用近战武器。",
+    "desc": "近战暴怒者。6武器槽，近战专家。每把近战武器+6%攻速。限制远程。",
     "starting_weapons": ["sword", "dagger"],
-    "stat_modifiers": {"max_hp": 15, "attack_speed": 0.20, "damage": 5, "dodge_chance": 0.05, "range": -80}
+    "weapon_slots": 6,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"max_hp": 18, "attack_speed": 0.20, "damage": 6, "dodge_chance": 0.05, "range": -80}
   },
   {
     "id": "ranger",
     "name": "游侠",
-    "desc": "精准射手。子弹有+10%概率触发致命一击伤害翻倍。",
+    "desc": "精准狙击手。2武器槽，射程x3。暴击伤害+100%。",
     "starting_weapons": ["crossbow"],
-    "stat_modifiers": {"damage": 3, "range": 100, "attack_speed": 0.08, "crit_chance": 0.10, "crit_damage": 0.80, "max_hp": -10}
+    "weapon_slots": 2,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 3.0,
+    "stat_modifiers": {"damage": 5, "range": 200, "attack_speed": -0.05, "crit_chance": 0.12, "crit_damage": 1.00, "max_hp": -10}
   },
   {
     "id": "shotgunner",
     "name": "爆破手",
-    "desc": "爆炸武器伤害+20%，霰弹枪延迟-15%。",
+    "desc": "爆炸专家。4武器槽。爆炸概率+15%，爆炸范围+2。",
     "starting_weapons": ["shotgun", "grenade_launcher"],
-    "stat_modifiers": {"max_hp": 8, "damage": 3, "range": -40, "explosion_chance": 0.10, "explosion_size": 1}
+    "weapon_slots": 4,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"max_hp": 10, "damage": 3, "range": -30, "explosion_chance": 0.15, "explosion_size": 2}
   },
   {
     "id": "juggernaut",
     "name": "重装兵",
-    "desc": "极高护甲和生命，但移动缓慢。无法获得闪避。",
+    "desc": "移动堡垒。2武器槽，每把武器伤害x3。极高护甲，无法闪避。",
     "starting_weapons": ["mace", "sword_broad"],
-    "stat_modifiers": {"max_hp": 35, "armor": 10, "speed": -35, "dodge_chance": -0.99, "damage": 4}
+    "weapon_slots": 2,
+    "weapon_damage_mult": 3.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"max_hp": 40, "armor": 12, "speed": -40, "dodge_chance": -0.99, "damage": 5}
   },
   {
     "id": "shadow",
     "name": "暗影刺客",
-    "desc": "高闪避高暴击，但生命极低。暴击伤害翻倍。",
+    "desc": "一击必杀。2武器槽。暴击率x3，暴击伤害+300%。生命极低。",
     "starting_weapons": ["dagger", "dagger"],
-    "stat_modifiers": {"attack_speed": 0.35, "crit_chance": 0.15, "crit_damage": 1.50, "dodge_chance": 0.15, "speed": 30, "max_hp": -25}
+    "weapon_slots": 2,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"attack_speed": 0.40, "crit_chance": 0.25, "crit_damage": 3.00, "dodge_chance": 0.20, "speed": 35, "max_hp": -28, "damage": 2}
   },
   {
     "id": "engineer",
     "name": "工程师",
-    "desc": "擅长远程自动武器，射速极高但伤害降低。最多携带4把武器。",
+    "desc": "自动武器专家。6武器槽，攻速+25%。伤害略低。",
     "starting_weapons": ["rifle", "smg", "pistol"],
-    "stat_modifiers": {"range": 50, "attack_speed": 0.25, "damage_percent": -0.20, "max_hp": 5, "pickup_radius": 40}
+    "weapon_slots": 6,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"range": 60, "attack_speed": 0.25, "damage_percent": -0.15, "max_hp": 5, "pickup_radius": 50}
   },
   {
     "id": "plague_doctor",
     "name": "瘟疫医生",
-    "desc": "击杀敌人回复2点生命。吸血+5%。低速高防。",
+    "desc": "吸血医生。6武器槽。击杀回复+3，吸血+8%。",
     "starting_weapons": ["staff_fire", "wand"],
-    "stat_modifiers": {"hp_regen": 4, "max_hp": 8, "life_steal": 0.05, "speed": -15, "armor": 4}
+    "weapon_slots": 6,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"hp_regen": 5, "max_hp": 10, "life_steal": 0.08, "speed": -10, "armor": 5, "damage": -2}
   },
   {
     "id": "merchant",
     "name": "商人",
-    "desc": "金币收益翻倍，商店可免费刷新一次。属性全面偏低。",
+    "desc": "金钱至上。6武器槽。金币收益x2，商店额外刷新。属性全面偏低。",
     "starting_weapons": ["pistol", "pistol"],
-    "stat_modifiers": {"coin_gain": 1.0, "luck": 10, "damage": -4, "max_hp": -8, "xp_gain": 0.15}
+    "weapon_slots": 6,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"coin_gain": 1.0, "luck": 12, "damage": -4, "max_hp": -8, "xp_gain": 0.20}
   },
   {
     "id": "gladiator",
     "name": "角斗士",
-    "desc": "近战伤害+30%，每击杀一个敌人+1临时攻击（持续本章）。",
+    "desc": "近战王者。6武器槽，近战伤害+30%。每击杀+1临时伤害。",
     "starting_weapons": ["sword", "sword_broad", "spear"],
-    "stat_modifiers": {"damage": 8, "attack_speed": 0.12, "max_hp": 12, "armor": 3, "speed": -15, "range": -60, "damage_percent": 0.10}
+    "weapon_slots": 6,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"damage": 10, "attack_speed": 0.15, "max_hp": 14, "armor": 4, "speed": -12, "range": -50, "damage_percent": 0.15}
   },
   {
     "id": "elementalist",
     "name": "元素师",
-    "desc": "魔法武器伤害+40%。基础生命极低。",
+    "desc": "魔法使。4武器槽，魔法伤害+50%。穿透+2。生命极低。",
     "starting_weapons": ["staff_ice", "staff_fire"],
-    "stat_modifiers": {"damage_percent": 0.40, "damage": 2, "max_hp": -20, "crit_damage": 0.40, "pierce": 1}
+    "weapon_slots": 4,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"damage_percent": 0.50, "damage": 3, "max_hp": -18, "crit_damage": 0.50, "pierce": 2}
   },
   {
     "id": "survivor",
     "name": "生存专家",
-    "desc": "高闪避高回复。受伤后2秒内移动速度+40%。",
+    "desc": "不死小强。4武器槽。高闪避+回复。经验获取+30%。",
     "starting_weapons": ["pistol"],
-    "stat_modifiers": {"dodge_chance": 0.18, "hp_regen": 3, "max_hp": 20, "xp_gain": 0.30, "damage": -3, "speed": 10}
+    "weapon_slots": 4,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"dodge_chance": 0.20, "hp_regen": 4, "max_hp": 25, "xp_gain": 0.30, "damage": -3, "speed": 12}
   },
   {
     "id": "lucky",
     "name": "幸运星",
-    "desc": "极高幸运，所有概率效果翻倍。但攻击力为0。",
+    "desc": "吉星高照。6武器槽。幸运+25，暴击率+15%。金币翻倍。攻击力为0。",
     "starting_weapons": ["wand"],
-    "stat_modifiers": {"luck": 20, "crit_chance": 0.12, "coin_gain": 0.50, "xp_gain": 0.50, "damage": -6, "damage_percent": 0.15}
+    "weapon_slots": 6,
+    "weapon_damage_mult": 1.0,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"luck": 25, "crit_chance": 0.15, "coin_gain": 1.0, "xp_gain": 0.50, "damage": -6, "damage_percent": 0.20}
+  },
+  {
+    "id": "cannoneer",
+    "name": "炮手",
+    "desc": "一炮定音。1武器槽，伤害x6，射程x3。初始榴弹发射器。",
+    "starting_weapons": ["grenade_launcher"],
+    "weapon_slots": 1,
+    "weapon_damage_mult": 6.0,
+    "weapon_range_mult": 3.0,
+    "stat_modifiers": {"max_hp": 15, "armor": 5, "explosion_chance": 0.15, "explosion_size": 3, "attack_speed": -0.10, "speed": -15}
+  },
+  {
+    "id": "generalist",
+    "name": "多面手",
+    "desc": "武器大师。8武器槽！但每把武器伤害x0.6。属性均衡偏低。",
+    "starting_weapons": ["pistol", "pistol", "pistol"],
+    "weapon_slots": 8,
+    "weapon_damage_mult": 0.6,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"max_hp": 8, "speed": 8, "attack_speed": 0.10, "damage": -2, "pickup_radius": 30}
+  },
+  {
+    "id": "swordsman",
+    "name": "剑圣",
+    "desc": "剑道极致。3武器槽，近战伤害+60%。只使用剑类。",
+    "starting_weapons": ["sword"],
+    "weapon_slots": 3,
+    "weapon_damage_mult": 1.6,
+    "weapon_range_mult": 1.0,
+    "stat_modifiers": {"damage": 8, "attack_speed": 0.22, "crit_chance": 0.10, "speed": 15, "max_hp": -5, "range": -70}
   }
 ]

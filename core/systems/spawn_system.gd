@@ -9,13 +9,11 @@ var _spawn_pool: Array = []
 var _total_weight: int = 0
 var _wave_active: bool = false
 var _current_wave: int = 0
-var _boss_id_override: String = ""
+
+const ELITE_IDS := [["elite_warrior", "elite_charger", "elite_marksman"], ["elite_golem", "elite_warlock"], ["elite_charger", "elite_golem", "elite_warlock"]]
 
 func _init(enemy_factory: EnemyFactory) -> void:
 	_enemy_factory = enemy_factory
-
-func set_boss_id(id: String) -> void:
-	_boss_id_override = id
 
 func start_wave(wave_number: int) -> void:
 	var cfg = ConfigLoader.get_wave(wave_number)
@@ -28,10 +26,11 @@ func start_wave(wave_number: int) -> void:
 	_wave_active = true
 	_current_wave = wave_number
 
+	_enemy_factory.set_wave(wave_number)
 	_parse_enemy_pool(cfg.get("enemy_groups", ""))
 
-	if cfg.get("is_boss_wave", false):
-		var boss_id = _boss_id_override if _boss_id_override != "" else cfg.get("boss_id", "boss_tank")
+	if _current_wave >= 5 and _current_wave % 5 == 0:
+		var boss_id = ["boss_tank","boss_assassin","boss_overlord","boss_wurm","boss_dragon","boss_colossus","boss_hydra","boss_phantom","boss_guardian","boss_summoner","boss_lich"][(_current_wave / 5 - 1) % 11]
 		_enemy_factory.create_enemy(boss_id)
 		EventBus.emit("boss_spawned", boss_id)
 
@@ -52,6 +51,11 @@ func _parse_enemy_pool(groups_str: String) -> void:
 		_total_weight += weight
 
 func _pick_enemy() -> String:
+	if _current_wave >= 6:
+		var elite_chance = min(0.08 + (_current_wave - 6) * 0.025, 0.35)
+		if randf() < elite_chance:
+			return _pick_elite()
+
 	if _spawn_pool.size() == 0:
 		return "melee_grunt"
 	if _spawn_pool.size() == 1:
@@ -63,6 +67,11 @@ func _pick_enemy() -> String:
 		if roll < cumulative:
 			return entry["enemy_id"]
 	return _spawn_pool[0]["enemy_id"]
+
+func _pick_elite() -> String:
+	var tier = min((_current_wave - 6) / 4, ELITE_IDS.size() - 1)
+	var pool = ELITE_IDS[tier]
+	return pool[randi() % pool.size()]
 
 func _get_scaled_interval() -> float:
 	var base = _spawn_interval

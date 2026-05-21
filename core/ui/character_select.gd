@@ -1,23 +1,10 @@
 extends Control
 
-var _is_multiplayer: bool = false
-var _player_selections: Dictionary = {}
 var _pending_selection: String = ""
-var _players: Array = []
 var _start_btn: Button
-var _player_selection_labels: VBoxContainer
 
 func _ready() -> void:
-	_is_multiplayer = MultiplayerManager.is_online
-	if _is_multiplayer:
-		multiplayer.peer_connected.connect(_on_peer_connected)
-		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-		_refresh_player_list()
-
 	_create_ui()
-
-	if _is_multiplayer:
-		_update_player_selections_display()
 
 func _create_ui() -> void:
 	var bg = ColorRect.new()
@@ -34,53 +21,15 @@ func _create_ui() -> void:
 	title.add_theme_color_override("font_color", Color(1, 0.9, 0.5, 1))
 	add_child(title)
 
-	if _is_multiplayer:
-		var panel = Panel.new()
-		panel.position = Vector2(890, 10)
-		panel.size = Vector2(370, 200)
-		panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.12, 0.12, 0.18, 0.95)))
-		add_child(panel)
-
-		var pl_title = Label.new()
-		pl_title.text = "已连接的玩家"
-		pl_title.position = Vector2(900, 16)
-		pl_title.size = Vector2(350, 24)
-		pl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		pl_title.add_theme_font_size_override("font_size", 16)
-		pl_title.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5, 1))
-		add_child(pl_title)
-
-		_player_selection_labels = VBoxContainer.new()
-		_player_selection_labels.position = Vector2(900, 44)
-		_player_selection_labels.size = Vector2(350, 140)
-		_player_selection_labels.add_theme_constant_override("separation", 4)
-		add_child(_player_selection_labels)
-
-		var back_btn = Button.new()
-		back_btn.text = "离开"
-		back_btn.position = Vector2(900, 185)
-		back_btn.size = Vector2(170, 28)
-		back_btn.pressed.connect(_on_leave)
-		add_child(back_btn)
-
-		_start_btn = Button.new()
-		_start_btn.text = "开始游戏 (仅房主)"
-		_start_btn.position = Vector2(1080, 185)
-		_start_btn.size = Vector2(170, 28)
-		_start_btn.pressed.connect(_on_start_game)
-		_start_btn.disabled = true
-		_start_btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1))
-		add_child(_start_btn)
-	else:
-		_start_btn = Button.new()
-		_start_btn.text = "开始游戏"
-		_start_btn.position = Vector2(490, 655)
-		_start_btn.size = Vector2(300, 44)
-		_start_btn.add_theme_font_size_override("font_size", 22)
-		_start_btn.pressed.connect(_on_start_game)
-		_start_btn.disabled = true
-		_start_btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1))
-		add_child(_start_btn)
+	_start_btn = Button.new()
+	_start_btn.text = "开始游戏"
+	_start_btn.position = Vector2(490, 655)
+	_start_btn.size = Vector2(300, 44)
+	_start_btn.add_theme_font_size_override("font_size", 22)
+	_start_btn.pressed.connect(_on_start_game)
+	_start_btn.disabled = true
+	_start_btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1))
+	add_child(_start_btn)
 
 	var scroll = ScrollContainer.new()
 	scroll.position = Vector2(30, 70)
@@ -96,12 +45,12 @@ func _create_ui() -> void:
 		var card = _make_character_card(char)
 		vbox.add_child(card)
 
-	var single_back = Button.new()
-	single_back.text = "返回"
-	single_back.position = Vector2(30, 668)
-	single_back.size = Vector2(140, 36)
-	single_back.pressed.connect(_on_leave)
-	add_child(single_back)
+	var back_btn = Button.new()
+	back_btn.text = "返回"
+	back_btn.position = Vector2(30, 668)
+	back_btn.size = Vector2(140, 36)
+	back_btn.pressed.connect(_on_leave)
+	add_child(back_btn)
 
 func _make_character_card(char: Dictionary) -> Panel:
 	var card = Panel.new()
@@ -165,6 +114,25 @@ func _make_character_card(char: Dictionary) -> Panel:
 	wpn_lbl.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2, 1))
 	info_vbox.add_child(wpn_lbl)
 
+	var slots = char.get("weapon_slots", 6)
+	var dmg_mult = char.get("weapon_damage_mult", 1.0)
+	var rng_mult = char.get("weapon_range_mult", 1.0)
+	var slot_text = "槽位: %d个" % slots
+	if dmg_mult != 1.0:
+		slot_text += "  伤害x%.1f" % dmg_mult
+	if rng_mult != 1.0:
+		slot_text += "  射程x%.1f" % rng_mult
+	var slot_lbl = Label.new()
+	slot_lbl.text = slot_text
+	slot_lbl.add_theme_font_size_override("font_size", 11)
+	if dmg_mult > 1.0 or rng_mult > 1.0:
+		slot_lbl.add_theme_color_override("font_color", Color(1, 0.5, 0.3, 1))
+	elif dmg_mult < 1.0:
+		slot_lbl.add_theme_color_override("font_color", Color(0.9, 0.55, 0.55, 1))
+	else:
+		slot_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1))
+	info_vbox.add_child(slot_lbl)
+
 	var btn_panel = Panel.new()
 	btn_panel.custom_minimum_size = Vector2(100, 110)
 	btn_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.10, 0.10, 0.14, 0.95)))
@@ -182,14 +150,6 @@ func _make_character_card(char: Dictionary) -> Panel:
 	sel_btn.add_theme_font_size_override("font_size", 16)
 	sel_btn.pressed.connect(_on_character_selected.bind(char["id"]))
 	btn_vbox.add_child(sel_btn)
-
-	var selected_lbl = Label.new()
-	selected_lbl.text = ""
-	selected_lbl.name = "SelectedLabel"
-	selected_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	selected_lbl.add_theme_font_size_override("font_size", 10)
-	selected_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4, 1))
-	btn_vbox.add_child(selected_lbl)
 
 	return card
 
@@ -281,6 +241,12 @@ func _get_visual_skin(char_id: String) -> Dictionary:
 			return {"body": Color(0.30, 0.35, 0.25, 1), "inner": Color(0.12, 0.15, 0.08, 1), "eyes": Color(0.8, 0.8, 0.8, 0.95), "size": 24.0}
 		"lucky":
 			return {"body": Color(0.90, 0.75, 0.15, 1), "inner": Color(0.60, 0.50, 0.05, 1), "eyes": Color(0, 0.9, 0, 0.95), "size": 24.0}
+		"cannoneer":
+			return {"body": Color(0.55, 0.20, 0.08, 1), "inner": Color(0.30, 0.08, 0.02, 1), "eyes": Color(1, 0.6, 0, 0.95), "size": 27.0}
+		"generalist":
+			return {"body": Color(0.40, 0.50, 0.60, 1), "inner": Color(0.20, 0.28, 0.35, 1), "eyes": Color(0.8, 0.9, 1, 0.95), "size": 24.0}
+		"swordsman":
+			return {"body": Color(0.30, 0.50, 0.70, 1), "inner": Color(0.12, 0.28, 0.45, 1), "eyes": Color(1, 1, 1, 0.95), "size": 25.0}
 		_:
 			return {"body": Color(0, 0.74, 0.83, 1), "inner": Color(0, 0.45, 0.55, 1), "eyes": Color(1, 1, 1, 0.95), "size": 25.0}
 
@@ -301,6 +267,9 @@ func _char_id_display(char_id: String) -> String:
 		"elementalist": return "元素师"
 		"survivor": return "生存专家"
 		"lucky": return "幸运星"
+		"cannoneer": return "炮手"
+		"generalist": return "多面手"
+		"swordsman": return "剑圣"
 		_: return "士兵"
 
 func _stat_label(key: String) -> String:
@@ -344,134 +313,13 @@ func _make_panel_style(color: Color) -> StyleBoxFlat:
 	return style
 
 func _on_character_selected(char_id: String) -> void:
-	var my_id = 1
-	if _is_multiplayer:
-		my_id = multiplayer.get_unique_id()
-		rpc("_rpc_player_selected", my_id, char_id)
-
-	_player_selections[my_id] = char_id
 	GameManager.apply_character(char_id)
-
-	_update_all_selected_labels()
-	_check_all_ready()
-
-	if not _is_multiplayer:
-		_start_btn.disabled = false
-		_start_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-
-@rpc("any_peer", "call_remote", "reliable")
-func _rpc_player_selected(peer_id: int, char_id: String) -> void:
-	_player_selections[peer_id] = char_id
-	_update_player_selections_display()
-	_update_all_selected_labels()
-	_check_all_ready()
-
-func _update_all_selected_labels() -> void:
-	var all_cards = _find_character_cards()
-	for card_node in all_cards:
-		card_node = card_node as Control
-
-func _find_character_cards() -> Array:
-	var cards: Array = []
-	var scroll: ScrollContainer = null
-	for child in get_children():
-		if child is ScrollContainer:
-			scroll = child
-			break
-	if scroll:
-		var vbox = scroll.get_child(0)
-		for card in vbox.get_children():
-			cards.append(card)
-	return cards
-
-func _update_player_selections_display() -> void:
-	if not _player_selection_labels:
-		return
-	for child in _player_selection_labels.get_children():
-		child.queue_free()
-
-	var my_id = multiplayer.get_unique_id()
-
-	for pid in MultiplayerManager.connected_players:
-		var info = MultiplayerManager.connected_players[pid]
-		var name = info.get("name", "玩家%d" % pid)
-		var sel = _player_selections.get(pid, "")
-		var sel_text = ""
-		if sel != "":
-			var cfg = ConfigLoader.get_character(sel)
-			if not cfg.is_empty():
-				sel_text = " → " + cfg["name"]
-		var label = Label.new()
-		label.text = "  %s%s" % [name, sel_text]
-		label.add_theme_font_size_override("font_size", 14)
-		if sel != "":
-			label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4, 1))
-		else:
-			label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1))
-		_player_selection_labels.add_child(label)
-
-	if MultiplayerManager.is_host:
-		_start_btn.text = "开始游戏 (%d/%d)" % [_ready_count(), MultiplayerManager.connected_players.size()]
-
-func _check_all_ready() -> void:
-	if not _is_multiplayer:
-		return
-	if not MultiplayerManager.is_host:
-		return
-	if _ready_count() >= MultiplayerManager.connected_players.size():
-		_start_btn.disabled = false
-		_start_btn.text = "开始游戏"
-		_start_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3, 1))
-	else:
-		_start_btn.disabled = true
-
-func _ready_count() -> int:
-	var cnt = 0
-	for pid in MultiplayerManager.connected_players:
-		if _player_selections.has(pid) and _player_selections[pid] != "":
-			cnt += 1
-	return cnt
+	_start_btn.disabled = false
+	_start_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
 
 func _on_start_game() -> void:
-	if _is_multiplayer:
-		if not MultiplayerManager.is_host:
-			return
-		if _ready_count() < MultiplayerManager.connected_players.size():
-			return
-		rpc("_rpc_start_game")
-		await get_tree().process_frame
-
-	_start_game_internal()
-
-@rpc("authority", "call_remote", "reliable")
-func _rpc_start_game() -> void:
-	_start_game_internal()
-
-func _start_game_internal() -> void:
-	if _is_multiplayer:
-		var my_id = multiplayer.get_unique_id()
-		var my_char = _player_selections.get(my_id, "")
-		if my_char == "":
-			my_char = "soldier"
-		GameManager.apply_character(my_char)
-
 	GameManager.start_game()
 	get_tree().change_scene_to_file("res://maps/game_world.tscn")
 
-func _on_peer_connected(id: int) -> void:
-	_refresh_player_list()
-	_update_player_selections_display()
-
-func _on_peer_disconnected(id: int) -> void:
-	_player_selections.erase(id)
-	_refresh_player_list()
-	_update_player_selections_display()
-	_check_all_ready()
-
-func _refresh_player_list() -> void:
-	_update_player_selections_display()
-
 func _on_leave() -> void:
-	if _is_multiplayer:
-		MultiplayerManager.disconnect_game()
 	get_tree().change_scene_to_file("res://maps/main_menu.tscn")
