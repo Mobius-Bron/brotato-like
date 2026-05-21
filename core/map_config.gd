@@ -1,10 +1,10 @@
 class_name MapConfig
 extends RefCounted
 
-const MAP_SIZE: float = 2000.0
-const MAP_MULTI_SIZE: float = 4000.0
-const WALL_THICKNESS: float = 40.0
-const SPAWN_MARGIN: float = 60.0
+const MAP_SIZE: float = 3000.0
+const MAP_MULTI_SIZE: float = 6000.0
+const WALL_THICKNESS: float = 50.0
+const SPAWN_MARGIN: float = 80.0
 
 static func get_size(multiplayer: bool = false) -> Vector2:
 	var s = MAP_MULTI_SIZE if multiplayer else MAP_SIZE

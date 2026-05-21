@@ -11,6 +11,7 @@ func _init(map_size: Vector2) -> void:
 func update(world: ECSWorld, delta: float) -> void:
 	_handle_player(world)
 	_handle_enemies(world, delta)
+	_apply_avoidance(world)
 	_move_all(world, delta)
 
 func _handle_player(world: ECSWorld) -> void:
@@ -48,6 +49,25 @@ func _handle_enemies(world: ECSWorld, delta: float) -> void:
 		elif world.weapons.has(eid) and dist < 250:
 			mov["speed"] = base_speed * 0.3
 
+func _apply_avoidance(world: ECSWorld) -> void:
+	var enemy_list: Array = []
+	for eid in world.enemies:
+		if world.transforms.has(eid) and world.collisions.has(eid):
+			enemy_list.append(eid)
+
+	for i in range(enemy_list.size()):
+		for j in range(i + 1, enemy_list.size()):
+			var a = enemy_list[i]
+			var b = enemy_list[j]
+			var pa: Vector2 = world.transforms[a]["position"]
+			var pb: Vector2 = world.transforms[b]["position"]
+			var dist = pa.distance_to(pb)
+			var min_dist = 24.0
+			if dist < min_dist and dist > 0.001:
+				var push = (pa - pb).normalized() * (min_dist - dist) * 0.5
+				world.transforms[a]["position"] = pa + push
+				world.transforms[b]["position"] = pb - push
+
 func _move_all(world: ECSWorld, delta: float) -> void:
 	var to_destroy := []
 	var all_with_movement = world.movements.keys()
@@ -73,5 +93,4 @@ func _move_all(world: ECSWorld, delta: float) -> void:
 		world.destroy_entity(eid)
 
 func _is_out_of_bounds(pos: Vector2) -> bool:
-	var wall = MapConfig.WALL_THICKNESS
-	return pos.x < wall or pos.x > _map_size.x - wall or pos.y < wall or pos.y > _map_size.y - wall
+	return pos.x < _margin or pos.x > _map_size.x - _margin or pos.y < _margin or pos.y > _map_size.y - _margin

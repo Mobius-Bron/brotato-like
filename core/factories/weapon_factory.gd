@@ -17,7 +17,8 @@ static func create_weapon_component(weapon_id: String) -> Dictionary:
 		"spread": cfg["spread"],
 		"targeting": cfg["targeting"],
 		"bullet_shape": cfg["bullet_shape"],
-		"bullet_color": cfg["bullet_color"]
+		"bullet_color": cfg["bullet_color"],
+		"melee": cfg.get("melee", false)
 	}
 
 static func apply_stat_bonuses(weapon_data: Dictionary, bonuses: Dictionary) -> Dictionary:

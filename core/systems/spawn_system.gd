@@ -4,9 +4,11 @@ extends RefCounted
 var _enemy_factory: EnemyFactory
 var _wave_timer: float = 0.0
 var _spawn_timer: float = 0.0
-var _pending_enemies: Array = []
-var _waves_cleared: int = 0
+var _spawn_interval: float = 1.5
+var _spawn_pool: Array = []
+var _total_weight: int = 0
 var _wave_active: bool = false
+var _current_wave: int = 0
 
 func _init(enemy_factory: EnemyFactory) -> void:
 	_enemy_factory = enemy_factory
@@ -16,19 +18,22 @@ func start_wave(wave_number: int) -> void:
 	if cfg.is_empty():
 		return
 
-	_wave_timer = cfg.get("duration", 30.0)
+	_wave_timer = cfg.get("duration", 90.0)
+	_spawn_interval = cfg.get("spawn_interval", 1.5)
 	_spawn_timer = 0.0
 	_wave_active = true
+	_current_wave = wave_number
 
-	_parse_enemy_groups(cfg.get("enemy_groups", ""), cfg.get("spawn_interval", 2.0))
+	_parse_enemy_pool(cfg.get("enemy_groups", ""))
 
 	if cfg.get("is_boss_wave", false):
 		var boss_id = cfg.get("boss_id", "boss_tank")
 		_enemy_factory.create_enemy(boss_id)
 		EventBus.emit("boss_spawned", boss_id)
 
-func _parse_enemy_groups(groups_str: String, interval: float) -> void:
-	_pending_enemies.clear()
+func _parse_enemy_pool(groups_str: String) -> void:
+	_spawn_pool.clear()
+	_total_weight = 0
 	if groups_str == "":
 		return
 
@@ -38,10 +43,27 @@ func _parse_enemy_groups(groups_str: String, interval: float) -> void:
 		if parts.size() != 2:
 			continue
 		var enemy_id = parts[0].strip_edges()
-		var count = int(parts[1])
-		for i in range(count):
-			var delay = randf_range(0, interval) * i
-			_pending_enemies.append({"enemy_id": enemy_id, "delay": delay})
+		var weight = int(parts[1])
+		_spawn_pool.append({"enemy_id": enemy_id, "weight": weight})
+		_total_weight += weight
+
+func _pick_enemy() -> String:
+	if _spawn_pool.size() == 0:
+		return "melee_grunt"
+	if _spawn_pool.size() == 1:
+		return _spawn_pool[0]["enemy_id"]
+	var roll = randi() % _total_weight
+	var cumulative = 0
+	for entry in _spawn_pool:
+		cumulative += entry["weight"]
+		if roll < cumulative:
+			return entry["enemy_id"]
+	return _spawn_pool[0]["enemy_id"]
+
+func _get_scaled_interval() -> float:
+	var base = _spawn_interval
+	var wave_factor = 1.0 - (_current_wave - 1) * 0.02
+	return max(base * wave_factor, base * 0.3)
 
 func update(world: ECSWorld, delta: float) -> void:
 	if not _wave_active:
@@ -50,21 +72,17 @@ func update(world: ECSWorld, delta: float) -> void:
 	_wave_timer -= delta
 	if _wave_timer <= 0:
 		_wave_active = false
-		_waves_cleared += 1
 		EventBus.emit("wave_cleared")
 		return
 
 	_spawn_timer -= delta
 	if _spawn_timer <= 0:
-		if _pending_enemies.size() > 0:
-			var info = _pending_enemies.pop_front()
-			_enemy_factory.create_enemy(info["enemy_id"])
-			_spawn_timer = randf_range(0.5, 1.5)
-		else:
-			_spawn_timer = 0.5
+		var enemy_id = _pick_enemy()
+		_enemy_factory.create_enemy(enemy_id)
+		_spawn_timer = _get_scaled_interval() * randf_range(0.7, 1.3)
 
 func is_wave_active() -> bool:
 	return _wave_active
 
 func is_wave_done() -> bool:
-	return not _wave_active and _pending_enemies.size() == 0
+	return not _wave_active

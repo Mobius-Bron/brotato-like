@@ -63,8 +63,64 @@ func apply_item(item_id: String) -> void:
 		stat_bonuses[key] += item.get("stat_value", 0)
 
 func add_weapon(weapon_id: String) -> void:
-	if not owned_weapons.has(weapon_id):
-		owned_weapons.append(weapon_id)
+	if owned_weapons.size() >= 6:
+		return
+	owned_weapons.append(weapon_id)
+
+func remove_weapon(weapon_id: String) -> void:
+	var idx = owned_weapons.find(weapon_id)
+	if idx != -1:
+		owned_weapons.remove_at(idx)
+
+func sell_weapon(weapon_id: String) -> int:
+	var idx = owned_weapons.find(weapon_id)
+	if idx == -1:
+		return 0
+	var cfg = ConfigLoader.get_weapon(weapon_id)
+	var refund = int(cfg.get("price", 0) * 0.5)
+	owned_weapons.remove_at(idx)
+	coins += refund
+	EventBus.emit("coins_changed", coins)
+	return refund
+
+func get_weapon_tier_upgrade(weapon_id: String) -> String:
+	var cfg = ConfigLoader.get_weapon(weapon_id)
+	if cfg.is_empty():
+		return ""
+	var tier = cfg.get("tier", 1)
+	var base_id = _get_base_id(weapon_id)
+	if base_id == "":
+		return ""
+	var next_id = base_id + "_t" + str(tier + 1)
+	var next_cfg = ConfigLoader.get_weapon(next_id)
+	if next_cfg.is_empty():
+		return ""
+	return next_id
+
+func try_merge_weapons(weapon_id: String) -> String:
+	var count = 0
+	for w in owned_weapons:
+		if w == weapon_id:
+			count += 1
+	if count < 2:
+		return ""
+
+	var upgrade = get_weapon_tier_upgrade(weapon_id)
+	if upgrade == "":
+		return ""
+
+	remove_weapon(weapon_id)
+	remove_weapon(weapon_id)
+	add_weapon(upgrade)
+	return upgrade
+
+func _get_base_id(weapon_id: String) -> String:
+	var rgx = RegEx.new()
+	rgx.compile("_t\\d+$")
+	var result = rgx.search(weapon_id)
+	if result:
+		return weapon_id.substr(0, result.get_start())
+	return weapon_id
 
 func set_state(new_state: State) -> void:
 	current_state = new_state

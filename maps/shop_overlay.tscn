@@ -7,8 +7,8 @@ script = ExtResource("1_script")
 
 [node name="DarkOverlay" type="ColorRect" parent="."]
 layout_mode = 0
-offset_right = 1280.0
-offset_bottom = 720.0
+offset_right = 3000.0
+offset_bottom = 3000.0
 color = Color(0, 0, 0, 0.6)
 
 [node name="ShopPanel" type="Panel" parent="."]
@@ -18,10 +18,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -250.0
-offset_right = 300.0
-offset_bottom = 250.0
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -33,42 +33,66 @@ offset_right = -20.0
 offset_bottom = -15.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="TitleLabel" type="Label" parent="ShopPanel/VBoxContainer"]
 layout_mode = 2
-text = "🏪 商店"
+text = "商店"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 28
+
+[node name="InventoryLabel" type="Label" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+text = "背包:"
+theme_override_font_sizes/font_size = 16
+
+[node name="InventoryContainer" type="VBoxContainer" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="ItemLabel" type="Label" parent="ShopPanel/VBoxContainer"]
 layout_mode = 2
 text = "道具:"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 
 [node name="ItemContainer" type="VBoxContainer" parent="ShopPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
 [node name="WeaponLabel" type="Label" parent="ShopPanel/VBoxContainer"]
 layout_mode = 2
 text = "武器:"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 
 [node name="WeaponContainer" type="VBoxContainer" parent="ShopPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
-[node name="CoinLabel" type="Label" parent="ShopPanel/VBoxContainer"]
+[node name="ButtonRow" type="HBoxContainer" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RefreshButton" type="Button" parent="ShopPanel/VBoxContainer/ButtonRow"]
+layout_mode = 2
+text = "刷新 (5G)"
+custom_minimum_size = Vector2(100, 20)
+size_flags_horizontal = 3
+
+[node name="Spacer" type="Control" parent="ShopPanel/VBoxContainer/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(20, 0)
+
+[node name="CoinLabel" type="Label" parent="ShopPanel/VBoxContainer/ButtonRow"]
 layout_mode = 2
 text = "金币: 0"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
+size_flags_horizontal = 3
 
-[node name="NextWaveButton" type="Button" parent="ShopPanel/VBoxContainer"]
+[node name="NextWaveButton" type="Button" parent="ShopPanel/VBoxContainer/ButtonRow"]
 layout_mode = 2
-text = "下一波 ▶"
-custom_minimum_size = Vector2(0, 45)
-theme_override_font_sizes/font_size = 22
+text = "下一波"
+custom_minimum_size = Vector2(100, 20)
+size_flags_horizontal = 3
 
-[connection signal="pressed" from="ShopPanel/VBoxContainer/NextWaveButton" to="." method="_on_next_wave_pressed"]
+[connection signal="pressed" from="ShopPanel/VBoxContainer/ButtonRow/RefreshButton" to="." method="_on_refresh_pressed"]
+[connection signal="pressed" from="ShopPanel/VBoxContainer/ButtonRow/NextWaveButton" to="." method="_on_next_wave_pressed"]

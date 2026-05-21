@@ -12,7 +12,6 @@ var _enemy_factory: EnemyFactory
 var _projectile_factory: ProjectileFactory
 var _player_id: int = -1
 var _between_waves: bool = false
-var _between_timer: float = 0.0
 var _map_size: Vector2
 var _player_camera: Camera2D
 
@@ -36,7 +35,7 @@ func _ready() -> void:
 	_movement_system = MovementSystem.new(_map_size)
 	_orbit_system = WeaponOrbitSystem.new()
 	_health_system = HealthSystem.new(_world)
-	_weapon_system = WeaponSystem.new(_projectile_factory)
+	_weapon_system = WeaponSystem.new(_projectile_factory, _health_system)
 	_collision_system = CollisionSystem.new(_health_system)
 	_spawn_system = SpawnSystem.new(_enemy_factory)
 	_render_system = RenderSystem.new(_render_layer)
@@ -65,7 +64,6 @@ func _setup_connections() -> void:
 	EventBus.on("player_died", _on_player_died)
 	EventBus.on("wave_cleared", _on_wave_cleared)
 	EventBus.on("player_heal", _on_player_heal)
-	EventBus.on("grass_effect", _on_grass_effect)
 
 func _create_player() -> void:
 	_player_id = _world.create_entity()
@@ -115,11 +113,14 @@ func _spawn_weapon_entities() -> void:
 		weapon_data = WeaponFactory.apply_stat_bonuses(weapon_data, GameManager.stat_bonuses)
 
 		var cfg = ConfigLoader.get_weapon(weapon_ids[i])
+		var is_melee = cfg.get("melee", false)
 		var color = Color.WHITE
 		if not cfg.is_empty():
 			color = _hex_to_color(cfg.get("bullet_color", "FFFFFF"))
 
 		var size: float = 12.0
+		if is_melee:
+			size = 18.0
 		var bright = Color(min(color.r * 1.3, 1.0), min(color.g * 1.3, 1.0), min(color.b * 1.3, 1.0), 1.0)
 		var dark = Color(color.r * 0.4, color.g * 0.4, color.b * 0.4, 1.0)
 
@@ -143,11 +144,14 @@ func _destroy_all_weapon_entities() -> void:
 	for weid in _world.weapon_entities.keys().duplicate():
 		_world.destroy_entity(weid)
 
+func _clear_all_enemies() -> void:
+	for eid in _world.enemies.keys().duplicate():
+		_world.destroy_entity(eid)
+	for pid in _world.projectiles.keys().duplicate():
+		_world.destroy_entity(pid)
+
 func _process(delta: float) -> void:
 	if _between_waves:
-		_between_timer -= delta
-		if _between_timer <= 0:
-			_between_waves = false
 		return
 
 	_world.update(delta)
@@ -170,20 +174,13 @@ func _update_camera() -> void:
 func _on_enemy_killed(data: Dictionary) -> void:
 	pass
 
-func _on_grass_effect(data: Dictionary) -> void:
-	if _grass_layer.has_method("add_effect"):
-		_grass_layer.add_effect(
-			data.get("pos", Vector2.ZERO),
-			data.get("radius", 120.0),
-			data.get("duration", 0.8)
-		)
-
 func _on_player_died(_data = null) -> void:
 	GameManager.set_state(GameManager.State.LOSE)
 	await get_tree().create_timer(1.5).timeout
 	get_tree().change_scene_to_file("res://maps/main_menu.tscn")
 
 func _on_wave_cleared(_data = null) -> void:
+	_clear_all_enemies()
 	GameManager.current_wave += 1
 	if GameManager.current_wave > 30:
 		GameManager.set_state(GameManager.State.WIN)
@@ -192,7 +189,6 @@ func _on_wave_cleared(_data = null) -> void:
 		return
 
 	_between_waves = true
-	_between_timer = 1.0
 	EventBus.emit("show_shop")
 
 func start_next_wave() -> void:
@@ -269,7 +265,7 @@ func _setup_player_camera() -> void:
 	add_child(_player_camera)
 
 func _setup_walls() -> void:
-	var wall_color = Color(0.15, 0.1, 0.04, 0.9)
+	var wall_color = Color(0.15, 0.10, 0.04, 0.95)
 	var wt = MapConfig.WALL_THICKNESS
 	var mw = _map_size.x
 	var mh = _map_size.y

@@ -1,9 +1,9 @@
 shader_type canvas_item;
 
-uniform float time_scale = 0.5;
-uniform vec3 color_dark = vec3(0.18, 0.12, 0.05);
-uniform vec3 color_mid = vec3(0.28, 0.18, 0.08);
-uniform vec3 color_light = vec3(0.35, 0.22, 0.10);
+uniform vec3 color_dark = vec3(0.16, 0.10, 0.04);
+uniform vec3 color_mid = vec3(0.26, 0.17, 0.07);
+uniform vec3 color_light = vec3(0.33, 0.22, 0.10);
+uniform vec3 color_puddle = vec3(0.18, 0.12, 0.05);
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -22,30 +22,42 @@ float noise(vec2 p) {
 	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
-float fbm(vec2 p) {
+float fbm(vec2 p, int octaves) {
 	float value = 0.0;
 	float amplitude = 0.5;
 	float frequency = 1.0;
-	for (int i = 0; i < 4; i++) {
+	float lacunarity = 2.1;
+	float gain = 0.55;
+	for (int i = 0; i < 6; i++) {
+		if (i >= octaves) break;
 		value += amplitude * noise(p * frequency);
-		frequency *= 2.0;
-		amplitude *= 0.5;
+		frequency *= lacunarity;
+		amplitude *= gain;
 	}
 	return value;
 }
 
 void fragment() {
 	vec2 uv = UV;
-	float n1 = fbm(uv * 8.0 + TIME * 0.01);
-	float n2 = fbm(uv * 16.0 + vec2(TIME * 0.02, 0.0));
-	float n3 = hash(uv * 50.0);
 
-	float combined = n1 * 0.6 + n2 * 0.3 + n3 * 0.1;
-	vec3 col = mix(color_dark, color_mid, smoothstep(0.3, 0.5, combined));
-	col = mix(col, color_light, smoothstep(0.55, 0.7, combined));
+	float n1 = fbm(uv * 4.0 + TIME * 0.015, 6);
+	float n2 = fbm(uv * 10.0 + vec2(TIME * 0.025, TIME * 0.01), 4);
+	float n3 = fbm(uv * 25.0 + vec2(0.0, TIME * 0.04), 2);
+	float n4 = noise(uv * 60.0);
 
-	float puddle = smoothstep(0.65, 0.72, n2);
-	col = mix(col, vec3(0.22, 0.16, 0.06), puddle * 0.5);
+	float combined = n1 * 0.45 + n2 * 0.3 + n3 * 0.15 + n4 * 0.1;
+	combined = combined * 0.6 + 0.2;
+
+	float t1 = smoothstep(0.32, 0.44, combined);
+	float t2 = smoothstep(0.46, 0.58, combined);
+	vec3 col = mix(color_dark, color_mid, t1);
+	col = mix(col, color_light, t2);
+
+	float wetness = smoothstep(0.62, 0.72, n2 * 0.8 + n3 * 0.2);
+	col = mix(col, color_puddle, wetness * 0.6);
+
+	float detail = n4 * 0.04;
+	col += detail;
 
 	COLOR = vec4(col, 1.0);
 }

@@ -37,8 +37,14 @@ func _draw_entities(world: ECSWorld, entities: Dictionary) -> void:
 		var outline_color = Color(0.0, 0.0, 0.0, 0.85)
 
 		if subs.size() > 0:
-			_draw_circle_outline(pos, outline_radius + 2.0, outline_color)
-			_draw_circle_outline(pos, outline_radius, Color(0.0, 0.0, 0.0, 0.3))
+			for sub in subs:
+				var sub_offset: Vector2 = sub.get("offset", Vector2.ZERO)
+				var sub_shape: String = sub.get("shape", "circle")
+				var sub_size: float = sub.get("size", size)
+				var sub_rot: float = sub.get("rotation", rot)
+				var outline_size = sub_size + 2.5
+				_draw_shape(sub_shape, pos + sub_offset, outline_size, outline_color, sub_rot)
+
 			for sub in subs:
 				var sub_offset: Vector2 = sub.get("offset", Vector2.ZERO)
 				var sub_shape: String = sub.get("shape", "circle")
@@ -56,9 +62,6 @@ func _draw_entities(world: ECSWorld, entities: Dictionary) -> void:
 			var outline_size = size + 3.0
 			_draw_shape(sprite["shape"], pos, outline_size, outline_color, rot)
 			_draw_shape(sprite["shape"], pos, size, draw_color, rot)
-
-func _draw_circle_outline(pos: Vector2, radius: float, color: Color) -> void:
-	_render_node.draw_circle(pos, radius, color)
 
 func _draw_shape(shape: String, pos: Vector2, size: float, color: Color, rotation: float) -> void:
 	match shape:
