@@ -1,0 +1,146 @@
+============================================
+  BrotatoLike 运行时结构图
+============================================
+
+一、场景节点树
+
+MainMenu.tscn:
+  Control (MainMenuUI)
+    ├── VBoxContainer
+    │   ├── Label "BrotatoLike"
+    │   ├── Button "开始游戏"
+    │   └── Button "退出游戏"
+
+──────────────────────────────────────
+
+GameWorld.tscn:
+  Node2D (GameWorld)                              ← 主入口脚本
+    ├── Node2D (RenderLayer)                       ← RenderSystem 绘制目标
+    ├── Node2D (SystemRunner)                      ← 驱动所有 System
+    └── CanvasLayer (HUD)                          ← UI 覆盖层
+        ├── Label (WaveLabel)                      ← 波次显示
+        ├── Label (HealthLabel)                    ← 生命值
+        ├── Label (TimerLabel)                     ← 倒计时
+        ├── Label (CoinLabel)                      ← 金币
+        ├── Label (ExpLabel)                       ← 经验
+        ├── ProgressBar (HealthBar)                ← 血条
+        └── ProgressBar (ExpBar)                   ← 经验条
+
+──────────────────────────────────────
+
+ShopOverlay.tscn:
+  CanvasLayer (ShopUI)                             ← 商店脚本
+    ├── ColorRect (DarkOverlay)                    ← 半透明遮罩
+    ├── Panel (ShopPanel)
+    │   ├── VBoxContainer
+    │   │   ├── Label "商店"
+    │   │   ├── HBoxContainer (ItemSlots)          ← 道具槽 x4
+    │   │   │   ├── ItemSlot1 (Panel + Button)
+    │   │   │   ├── ItemSlot2
+    │   │   │   ├── ItemSlot3
+    │   │   │   └── ItemSlot4
+    │   │   ├── HBoxContainer (WeaponSlots)        ← 武器槽 x3
+    │   │   │   ├── WeaponSlot1
+    │   │   │   ├── WeaponSlot2
+    │   │   │   └── WeaponSlot3
+    │   │   └── Button "下一波"
+
+──────────────────────────────────────
+
+LobbyMap.tscn:  (预留 - 网络联机)
+  Control (LobbyUI)
+    ├── Label "等待大厅"
+    ├── VBoxContainer (PlayerList)
+    └── Button "开始游戏" (仅主机可见)
+
+
+二、运行时对象关系
+
+  GameWorld (Node2D, 主脚本)
+    │
+    ├── owns → ECSWorld
+    │   ├── Entities[]
+    │   ├── Component Storages
+    │   └── Systems[]
+    │       ├── MovementSystem
+    │       ├── WeaponSystem
+    │       ├── CollisionSystem
+    │       ├── HealthSystem
+    │       ├── SpawnSystem
+    │       └── RenderSystem (draws to RenderLayer)
+    │
+    ├── owns → ObjectPool<Entity>
+    │
+    ├── references → GameManager (单例)
+    │   ├── CurrentState: GameState {MENU,PLAYING,SHOP,WIN,LOSE}
+    │   └── GameData (coins, wave, exp, items, weapons)
+    │
+    ├── references → WaveManager
+    │   ├── CurrentWave: int
+    │   ├── WaveTimer: float
+    │   └── IsBossWave: bool
+    │
+    └── references → EventBus (单例)
+        └── Events: Dictionary<string, Action<object>>
+
+
+三、每帧更新流程 (ECSWorld.Update)
+
+  _Process(delta):
+    1. SpawnSystem.Update(world, delta)
+       - 检查波次计时器，按配置生成敌人
+    2. MovementSystem.Update(world, delta)
+       - 玩家：读取输入方向，更新 Movement.Direction
+       - 敌人：AI 逻辑，追踪玩家
+       - 所有：Position += Direction * Speed * delta
+    3. WeaponSystem.Update(world, delta)
+       - 遍历所有 WeaponComponent
+       - 减少冷却计时器
+       - 冷却完毕 → 查找最近敌人 → 发射子弹
+    4. CollisionSystem.Update(world, delta)
+       - 子弹 vs 敌人 / 敌人 vs 玩家
+       - 检测圆形碰撞
+       - 触发伤害事件
+    5. HealthSystem.Update(world, delta)
+       - 处理伤害
+       - 更新无敌帧
+       - 生命值 <= 0 → 死亡处理
+       - 掉落金币/经验
+    6. RenderSystem.Update(world, delta)
+       - 在 RenderLayer._Draw() 中绘制所有实体
+       - 根据 SpriteComponent 绘制对应形状和颜色
+
+
+四、类图关系
+
+  ┌──────────────┐         ┌──────────────┐
+  │  GameManager │◄────────│  EventBus    │
+  │  (单例)      │         │  (单例)      │
+  └──────┬───────┘         └──────┬───────┘
+         │                        │
+         │ owns                   │ fires events
+         ▼                        ▼
+  ┌──────────────┐         ┌──────────────┐
+  │  GameData    │         │  UI / Systems│
+  └──────────────┘         └──────────────┘
+
+  ┌──────────────┐
+  │  ECSWorld    │◄──── owns ──── GameWorld (Node2D)
+  │              │
+  │ - Entities   │
+  │ - Components │
+  │ - Systems    │
+  └──────┬───────┘
+         │ uses
+         ▼
+  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+  │EnemyFactory  │    │WeaponFactory │    │ProjFactory   │
+  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘
+         │                   │                   │
+         └───────────────────┼───────────────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │  ConfigLoader    │
+                    │  (加载 CSV)      │
+                    └──────────────────┘

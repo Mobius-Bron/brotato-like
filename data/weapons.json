@@ -1,0 +1,62 @@
+[
+  {
+    "id": "pistol",
+    "name": "手枪",
+    "cooldown": 0.6,
+    "damage": 8,
+    "range": 400,
+    "bullet_speed": 400,
+    "bullet_size": 4,
+    "bullet_count": 1,
+    "spread": 0,
+    "bullet_shape": "circle",
+    "bullet_color": "FFEB3B",
+    "targeting": "nearest",
+    "price": 0
+  },
+  {
+    "id": "shotgun",
+    "name": "霰弹枪",
+    "cooldown": 1.2,
+    "damage": 5,
+    "range": 300,
+    "bullet_speed": 300,
+    "bullet_size": 3,
+    "bullet_count": 5,
+    "spread": 30,
+    "bullet_shape": "circle",
+    "bullet_color": "FF9800",
+    "targeting": "nearest",
+    "price": 30
+  },
+  {
+    "id": "rifle",
+    "name": "步枪",
+    "cooldown": 0.3,
+    "damage": 4,
+    "range": 500,
+    "bullet_speed": 600,
+    "bullet_size": 3,
+    "bullet_count": 1,
+    "spread": 5,
+    "bullet_shape": "rect",
+    "bullet_color": "00BCD4",
+    "targeting": "nearest",
+    "price": 40
+  },
+  {
+    "id": "enemy_bullet",
+    "name": "敌方子弹",
+    "cooldown": 2.0,
+    "damage": 8,
+    "range": 350,
+    "bullet_speed": 200,
+    "bullet_size": 5,
+    "bullet_count": 1,
+    "spread": 0,
+    "bullet_shape": "circle",
+    "bullet_color": "FF5722",
+    "targeting": "player",
+    "price": 0
+  }
+]

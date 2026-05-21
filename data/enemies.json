@@ -1,0 +1,58 @@
+[
+  {
+    "id": "melee_grunt",
+    "name": "近战小兵",
+    "shape": "rect",
+    "color": "F44336",
+    "hp": 30,
+    "speed": 80,
+    "damage": 5,
+    "size": 16,
+    "weapon_id": "",
+    "xp_drop": 10,
+    "coin_drop": 5,
+    "is_boss": false
+  },
+  {
+    "id": "ranged_shooter",
+    "name": "远程射手",
+    "shape": "triangle",
+    "color": "FF9800",
+    "hp": 20,
+    "speed": 50,
+    "damage": 8,
+    "size": 14,
+    "weapon_id": "enemy_bullet",
+    "xp_drop": 15,
+    "coin_drop": 8,
+    "is_boss": false
+  },
+  {
+    "id": "fast_runner",
+    "name": "快速冲撞",
+    "shape": "diamond",
+    "color": "E91E63",
+    "hp": 15,
+    "speed": 160,
+    "damage": 10,
+    "size": 12,
+    "weapon_id": "",
+    "xp_drop": 12,
+    "coin_drop": 6,
+    "is_boss": false
+  },
+  {
+    "id": "boss_tank",
+    "name": "巨型坦克",
+    "shape": "hexagon",
+    "color": "B71C1C",
+    "hp": 300,
+    "speed": 40,
+    "damage": 20,
+    "size": 40,
+    "weapon_id": "enemy_bullet",
+    "xp_drop": 100,
+    "coin_drop": 50,
+    "is_boss": true
+  }
+]

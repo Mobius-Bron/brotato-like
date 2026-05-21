@@ -1,0 +1,102 @@
+[gd_scene load_steps=6 format=3 uid="uid://game_world_001"]
+
+[ext_resource type="Script" path="res://core/ui/game_world.gd" id="1_script"]
+[ext_resource type="Script" path="res://core/ui/shader_rect.gd" id="2_mud_scr"]
+[ext_resource type="Script" path="res://core/ui/grass_layer.gd" id="3_grass_scr"]
+[ext_resource type="Script" path="res://core/ui/render_layer.gd" id="4_rl"]
+[ext_resource type="PackedScene" uid="uid://shop_overlay_001" path="res://maps/shop_overlay.tscn" id="5_shop"]
+
+[node name="GameWorld" type="Node2D" groups=["game_world"]]
+script = ExtResource("1_script")
+
+[node name="MudLayer" type="Node2D" parent="."]
+script = ExtResource("2_mud_scr")
+
+[node name="GrassLayer" type="Node2D" parent="."]
+script = ExtResource("3_grass_scr")
+
+[node name="RenderLayer" type="Node2D" parent="."]
+script = ExtResource("4_rl")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="HealthBar" type="ProgressBar" parent="HUD"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 16.0
+offset_right = 250.0
+offset_bottom = 38.0
+max_value = 50.0
+value = 50.0
+show_percentage = false
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="HealthLabel" type="Label" parent="HUD"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 40.0
+offset_right = 250.0
+offset_bottom = 60.0
+text = "HP: 50/50"
+theme_override_font_sizes/font_size = 14
+
+[node name="ExpBar" type="ProgressBar" parent="HUD"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 66.0
+offset_right = 250.0
+offset_bottom = 80.0
+max_value = 30.0
+value = 0.0
+show_percentage = false
+theme_override_colors/fill_color = Color(0.4, 0.8, 0.4, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="ExpLabel" type="Label" parent="HUD"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 84.0
+offset_right = 250.0
+offset_bottom = 104.0
+text = "Lv.1 经验: 0/30"
+theme_override_font_sizes/font_size = 12
+
+[node name="WaveLabel" type="Label" parent="HUD"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 20.0
+offset_top = 116.0
+offset_right = 200.0
+offset_bottom = 136.0
+text = "波次: 1/30"
+theme_override_font_sizes/font_size = 16
+
+[node name="TimerLabel" type="Label" parent="HUD"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -60.0
+offset_top = 16.0
+offset_right = 60.0
+offset_bottom = 40.0
+text = "剩余: 30s"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="CoinLabel" type="Label" parent="HUD"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -180.0
+offset_top = 16.0
+offset_right = -20.0
+offset_bottom = 40.0
+text = "金币: 0"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="ShopOverlay" parent="." instance=ExtResource("5_shop")]

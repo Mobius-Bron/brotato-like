@@ -1,0 +1,73 @@
+============================================
+  BrotatoLike 项目结构文档
+============================================
+
+项目根目录: brotato-like/
+
+core/                           # 全部程序代码（C#）
+  ecs/                          # ECS 框架核心
+    ECSWorld.cs                 # ECS 世界容器（实体+组件+系统）
+  components/                   # 数据组件（纯数据 struct/class）
+    TransformComponent.cs       # 位置组件
+    HealthComponent.cs          # 生命值组件
+    MovementComponent.cs        # 移动组件
+    WeaponComponent.cs          # 武器组件
+    CollisionComponent.cs       # 碰撞组件
+    SpriteComponent.cs          # 精灵渲染组件
+    LifetimeComponent.cs        # 生命周期组件（子弹等）
+    PlayerTag.cs                # 玩家标记
+    EnemyTag.cs                 # 敌人标记
+    ProjectileTag.cs            # 子弹标记
+  systems/                      # 系统（处理逻辑）
+    ISystem.cs                  # 系统接口
+    MovementSystem.cs           # 移动系统
+    WeaponSystem.cs             # 武器系统（自动瞄准+射击）
+    CollisionSystem.cs          # 碰撞检测系统
+    HealthSystem.cs             # 生命值/死亡处理系统
+    SpawnSystem.cs              # 敌人生成系统
+    RenderSystem.cs             # 集中渲染系统
+  managers/                     # 全局管理器
+    GameManager.cs              # 游戏状态管理
+    WaveManager.cs              # 波次管理
+    EventBus.cs                 # 事件系统
+    ConfigLoader.cs             # CSV 配置加载
+  factories/                    # 工厂类
+    EnemyFactory.cs             # 敌人创建工厂
+    WeaponFactory.cs            # 武器装备工厂
+    ProjectileFactory.cs        # 子弹工厂
+  pool/                         # 对象池
+    ObjectPool.cs               # 泛型对象池
+  data/                         # 运行时数据模型
+    EnemyConfig.cs              # 敌人配置数据
+    WeaponConfig.cs             # 武器配置数据
+    ItemConfig.cs               # 道具配置数据
+    WaveConfig.cs               # 波次配置数据
+    GameData.cs                 # 游戏运行时数据（玩家金币/经验等）
+  ui/                           # UI 脚本
+    MainMenuUI.cs               # 主菜单
+    GameHUD.cs                  # 战斗 HUD
+    ShopUI.cs                   # 商店界面
+  network/                      # 联机架构（预留）
+    NetworkManager.cs           # 网络管理器（预留）
+    LobbyManager.cs             # 大厅管理（预留）
+
+maps/                           # Godot 场景文件
+  MainMenu.tscn                 # 主菜单场景
+  GameWorld.tscn                # 核心战斗场景
+  ShopOverlay.tscn              # 商店覆盖层场景
+  LobbyMap.tscn                 # 联机等待大厅（预留）
+
+assets/                         # 资产文件夹（程序化生成，无外部素材）
+
+data/                           # CSV 配置数据
+  enemies.csv                   # 敌人配置
+  weapons.csv                   # 武器配置
+  items.csv                     # 道具配置
+  waves.csv                     # 波次配置
+
+docs/                           # 设计文档
+  01-project-structure.txt      # 项目结构
+  02-data-structures.txt        # 数据结构协议
+  03-game-flow.txt              # 游戏流程图
+  04-architecture.txt           # 架构设计
+  05-run-structure.txt          # 运行时结构图

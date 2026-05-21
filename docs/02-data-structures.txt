@@ -1,0 +1,113 @@
+============================================
+  BrotatoLike 数据结构协议
+============================================
+
+一、ECS 组件（纯数据，无逻辑）
+
+TransformComponent:
+  - Position: Vector2         # 世界坐标位置
+
+HealthComponent:
+  - CurrentHP: int
+  - MaxHP: int
+  - InvincibleTime: float     # 无敌帧时间（受伤后短暂无敌）
+  - InvincibleTimer: float
+
+MovementComponent:
+  - Speed: float              # 移动速度（像素/秒）
+  - Direction: Vector2        # 移动方向（单位向量）
+  - IsPlayer: bool            # 是否是玩家（决定输入来源）
+
+WeaponComponent:
+  - WeaponId: string          # 武器配置 ID
+  - CooldownRemaining: float  # 剩余冷却时间
+  - BaseCooldown: float       # 基础冷却时间
+  - Damage: int               # 武器伤害
+  - Range: float              # 攻击范围
+  - BulletSpeed: float        # 子弹速度
+  - BulletSize: float         # 子弹大小
+  - BulletCount: int          # 每次发射子弹数
+  - Spread: float             # 散射角度（度）
+  - Targeting: string         # 瞄准方式: "nearest"
+
+CollisionComponent:
+  - Radius: float             # 碰撞半径
+
+SpriteComponent:
+  - Shape: string             # 形状: "circle","rect","diamond","triangle","hexagon"
+  - Color: Color              # 颜色
+  - Size: float               # 大小
+
+LifetimeComponent:
+  - RemainingTime: float      # 剩余存活时间（秒）
+
+PlayerTag:
+  - (标记组件，空结构)
+
+EnemyTag:
+  - (标记组件，空结构)
+
+ProjectileTag:
+  - OwnerId: int              # 发射者实体 ID
+  - Damage: int               # 伤害值
+
+
+二、配置数据结构
+
+EnemyConfig:
+  - Id: string                # 敌人 ID
+  - Name: string              # 显示名称
+  - Shape: string             # 形状
+  - Color: string             # 颜色（十六进制）
+  - HP: int                   # 生命值
+  - Speed: float              # 移动速度
+  - Damage: int               # 碰撞伤害
+  - Size: float               # 体型大小
+  - WeaponId: string          # 携带武器 ID（空则近战）
+  - XpDrop: int               # 经验掉落
+  - CoinDrop: int             # 金币掉落
+  - IsBoss: bool              # 是否是 Boss
+
+WeaponConfig:
+  - Id: string
+  - Name: string
+  - Cooldown: float           # 冷却时间（秒）
+  - Damage: int               # 伤害
+  - Range: float              # 射程
+  - BulletSpeed: float        # 子弹速度
+  - BulletSize: float         # 子弹大小
+  - BulletCount: int          # 子弹数
+  - Spread: float             # 散射角度
+  - BulletShape: string       # 子弹形状
+  - BulletColor: string       # 子弹颜色
+  - Targeting: string         # 瞄准方式
+  - Price: int                # 商店价格
+
+ItemConfig:
+  - Id: string
+  - Name: string
+  - Description: string
+  - Type: string              # "stat"(属性),"weapon"(武器)
+  - StatKey: string           # 修改的属性名
+  - StatValue: float          # 修改值
+  - Price: int
+
+WaveConfig:
+  - WaveNumber: int           # 波次编号
+  - EnemyGroups: string       # 敌人组配置 "id:count,id:count"
+  - SpawnInterval: float      # 生成间隔（秒）
+  - Duration: float           # 波次持续时间
+  - IsBossWave: bool          # 是否是 Boss 波次
+  - BossId: string            # Boss ID（如果是 Boss 波次）
+
+
+三、运行时数据
+
+GameData:
+  - Coins: int                # 当前金币
+  - CurrentWave: int          # 当前波次
+  - PlayerLevel: int          # 玩家等级
+  - PlayerExp: int            # 当前经验
+  - PlayerExpToNext: int      # 升级所需经验
+  - OwnedItems: List<string>  # 拥有的道具 ID 列表
+  - OwnedWeapons: List<string># 拥有的武器 ID 列表

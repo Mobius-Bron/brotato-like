@@ -1,0 +1,65 @@
+[
+  {
+    "id": "hp_up",
+    "name": "生命提升",
+    "desc": "最大生命值 +10",
+    "type": "stat",
+    "stat_key": "max_hp",
+    "stat_value": 10,
+    "price": 15
+  },
+  {
+    "id": "speed_up",
+    "name": "速度提升",
+    "desc": "移动速度 +20",
+    "type": "stat",
+    "stat_key": "speed",
+    "stat_value": 20,
+    "price": 10
+  },
+  {
+    "id": "damage_up",
+    "name": "攻击提升",
+    "desc": "所有武器伤害 +3",
+    "type": "stat",
+    "stat_key": "damage",
+    "stat_value": 3,
+    "price": 20
+  },
+  {
+    "id": "hp_regen",
+    "name": "生命回复",
+    "desc": "回复 15 点生命",
+    "type": "stat",
+    "stat_key": "heal",
+    "stat_value": 15,
+    "price": 12
+  },
+  {
+    "id": "armor",
+    "name": "护甲",
+    "desc": "受伤减免 2 点",
+    "type": "stat",
+    "stat_key": "armor",
+    "stat_value": 2,
+    "price": 25
+  },
+  {
+    "id": "atk_speed",
+    "name": "攻速提升",
+    "desc": "攻击冷却 -15%",
+    "type": "stat",
+    "stat_key": "cooldown_mult",
+    "stat_value": 0.85,
+    "price": 20
+  },
+  {
+    "id": "range_up",
+    "name": "射程提升",
+    "desc": "武器射程 +50",
+    "type": "stat",
+    "stat_key": "range",
+    "stat_value": 50,
+    "price": 18
+  }
+]

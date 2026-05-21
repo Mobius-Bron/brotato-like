@@ -1,0 +1,74 @@
+[gd_scene load_steps=2 format=3 uid="uid://shop_overlay_001"]
+
+[ext_resource type="Script" path="res://core/ui/shop_ui.gd" id="1_script"]
+
+[node name="ShopOverlay" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="ShopPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -250.0
+offset_right = 300.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ShopPanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = -20.0
+offset_bottom = -15.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+text = "🏪 商店"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 32
+
+[node name="ItemLabel" type="Label" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+text = "道具:"
+theme_override_font_sizes/font_size = 18
+
+[node name="ItemContainer" type="VBoxContainer" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WeaponLabel" type="Label" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+text = "武器:"
+theme_override_font_sizes/font_size = 18
+
+[node name="WeaponContainer" type="VBoxContainer" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CoinLabel" type="Label" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+text = "金币: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="NextWaveButton" type="Button" parent="ShopPanel/VBoxContainer"]
+layout_mode = 2
+text = "下一波 ▶"
+custom_minimum_size = Vector2(0, 45)
+theme_override_font_sizes/font_size = 22
+
+[connection signal="pressed" from="ShopPanel/VBoxContainer/NextWaveButton" to="." method="_on_next_wave_pressed"]
