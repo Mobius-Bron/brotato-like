@@ -15,7 +15,8 @@ func create_projectile(
 	shape: String,
 	color_hex: String,
 	owner_id: int,
-	lifetime: float = 3.0
+	lifetime: float = 3.0,
+	pierce: int = 0
 ) -> int:
 	var eid = _world.create_entity()
 
@@ -30,6 +31,7 @@ func create_projectile(
 		"size": size,
 		"rotation": direction.angle(),
 		"outline_radius": size * 0.55,
+		"height": 0.7,
 		"sub_sprites": [
 			{"shape": "circle", "offset": Vector2.ZERO, "color": Color(0.0, 0.0, 0.0, 0.6), "size": size + 2.0},
 			{"shape": "circle", "offset": Vector2.ZERO, "color": col, "size": size},
@@ -37,7 +39,7 @@ func create_projectile(
 		]
 	}
 	_world.lifetimes[eid] = {"remaining_time": lifetime}
-	_world.projectiles[eid] = {"owner_id": owner_id, "damage": damage}
+	_world.projectiles[eid] = {"owner_id": owner_id, "damage": damage, "pierce": pierce}
 
 	return eid
 

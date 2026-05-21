@@ -17,6 +17,7 @@ var players := {}
 var enemies := {}
 var projectiles := {}
 var weapon_entities := {}
+var xp_orbs := {} 
 
 var player_position := Vector2.ZERO
 
@@ -39,6 +40,7 @@ func destroy_entity(id: int) -> void:
 	enemies.erase(id)
 	projectiles.erase(id)
 	weapon_entities.erase(id)
+	xp_orbs.erase(id)
 
 func is_alive(id: int) -> bool:
 	return _alive_entities.has(id)

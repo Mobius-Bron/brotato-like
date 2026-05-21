@@ -9,16 +9,20 @@ var _spawn_pool: Array = []
 var _total_weight: int = 0
 var _wave_active: bool = false
 var _current_wave: int = 0
+var _boss_id_override: String = ""
 
 func _init(enemy_factory: EnemyFactory) -> void:
 	_enemy_factory = enemy_factory
+
+func set_boss_id(id: String) -> void:
+	_boss_id_override = id
 
 func start_wave(wave_number: int) -> void:
 	var cfg = ConfigLoader.get_wave(wave_number)
 	if cfg.is_empty():
 		return
 
-	_wave_timer = cfg.get("duration", 90.0)
+	_wave_timer = cfg.get("duration", 30.0)
 	_spawn_interval = cfg.get("spawn_interval", 1.5)
 	_spawn_timer = 0.0
 	_wave_active = true
@@ -27,7 +31,7 @@ func start_wave(wave_number: int) -> void:
 	_parse_enemy_pool(cfg.get("enemy_groups", ""))
 
 	if cfg.get("is_boss_wave", false):
-		var boss_id = cfg.get("boss_id", "boss_tank")
+		var boss_id = _boss_id_override if _boss_id_override != "" else cfg.get("boss_id", "boss_tank")
 		_enemy_factory.create_enemy(boss_id)
 		EventBus.emit("boss_spawned", boss_id)
 
@@ -62,8 +66,8 @@ func _pick_enemy() -> String:
 
 func _get_scaled_interval() -> float:
 	var base = _spawn_interval
-	var wave_factor = 1.0 - (_current_wave - 1) * 0.02
-	return max(base * wave_factor, base * 0.3)
+	var wave_factor = 1.0 - (_current_wave - 1) * 0.015
+	return maxf(base * wave_factor, 0.35)
 
 func update(world: ECSWorld, delta: float) -> void:
 	if not _wave_active:
@@ -78,7 +82,9 @@ func update(world: ECSWorld, delta: float) -> void:
 	_spawn_timer -= delta
 	if _spawn_timer <= 0:
 		var enemy_id = _pick_enemy()
-		_enemy_factory.create_enemy(enemy_id)
+		var player_pos = world.player_position
+		var spawn_pos = _enemy_factory.random_map_position(player_pos)
+		_enemy_factory.create_enemy(enemy_id, spawn_pos)
 		_spawn_timer = _get_scaled_interval() * randf_range(0.7, 1.3)
 
 func is_wave_active() -> bool:

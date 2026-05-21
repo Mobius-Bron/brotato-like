@@ -16,76 +16,65 @@
   │  │           ECS World (核心层)             │   │
   │  │  ┌─────────┐  ┌─────────────────────┐  │   │
   │  │  │ Entities│  │ Component Storages  │  │   │
+  │  │  │(纯ID)   │  │ transforms/healths  │  │   │
+  │  │  │         │  │ movements/weapons   │  │   │
+  │  │  │         │  │ collisions/sprites  │  │   │
+  │  │  │         │  │ lifetimes/xp_orbs  │  │   │
   │  │  └─────────┘  └─────────────────────┘  │   │
   │  │  ┌─────────────────────────────────┐   │   │
-  │  │  │         Systems                 │   │   │
-  │  │  │  Movement | Weapon | Collision  │   │   │
-  │  │  │  Health   | Spawn  | Render    │   │   │
+  │  │  │         Systems (8个)            │   │   │
+  │  │  │  Movement | WeaponOrbit | Weapon│   │   │
+  │  │  │  Collision| Health     | Spawn  │   │   │
+  │  │  │  Lifetime | Render              │   │   │
   │  │  └─────────────────────────────────┘   │   │
-  │  │  ┌──────────┐  ┌──────────────────┐   │   │
-  │  │  │ Managers │  │   Factories       │   │   │
-  │  │  │ Game     │  │ Enemy | Weapon    │   │   │
-  │  │  │ Wave     │  │ Projectile       │   │   │
-  │  │  └──────────┘  └──────────────────┘   │   │
   │  └─────────────────────────────────────────┘   │
   └────────────────────────────────────────────────┘
 
+二、新增/修改系统
 
-二、设计模式
+  1. 经验球系统（XP Orbs）
+     - 击杀敌人不再自动加经验，改为掉落绿色diamond经验球
+     - 玩家走近自动拾取（pickup_radius: 40 + stat_bonus）
+     - 经验球存在时间45秒后自动消失
 
-  1. ECS (Entity-Component-System)
-     - Entity: 仅 ID 标识
-     - Component: 纯数据结构，无逻辑
-     - System: 遍历组件处理逻辑
+  2. Perk选择——波次结束后
+     - wave_cleared → 检查pending_levels → show_perks
+     - 3选1属性提升（26个Perk池）
+     - 多级连续选择
+     - perks_done → advance_wave_or_shop
 
-  2. 工厂模式 (Factory Pattern)
-     - EnemyFactory: 从 CSV 配置创建敌人实体
-     - WeaponFactory: 从 CSV 配置创建武器实体
-     - ProjectileFactory: 从对象池获取子弹实体
+  3. 近战动画系统
+     - 砍(slash): 5帧弧光扫过（sword/axe/broad_sword）
+     - 刺(thrust): 4帧延伸矩形+三角（spear/dagger）
+     - 钝(blunt): 4帧圆形hexagon重击（mace）
+     - 武器实体按melee_type显示不同sprite
 
-  3. 对象池 (Object Pool)
-     - 敌人、子弹、粒子效果使用对象池
-     - 避免频繁 GC，提升性能
+  4. 角色皮肤系统
+     - 13角色各具独特颜色+眼睛色+大小
+     - body颜色+inner暗色+eyes亮色
+     - 各角色差异化极大（狂战士双持近战、暗影刺客高闪避低血、商人金币翻倍等）
 
-  4. 组件模式 (Component Pattern)
-     - 角色 = 组件组合
-     - 不同敌人只是 CSV 配置不同
+  5. LAN联机
+     - MultiplayerManager autoload（ENet）
+     - Host: ENetServer port 9876
+     - Client: 输入IP连接
+     - 最多4人
+     - Host权威运行ECS，客户端同步渲染
 
-  5. 观察者模式 (Observer Pattern)
-     - EventBus 事件系统解耦 UI 和逻辑
-     - 事件: 受伤/死亡/波次变化/金币变化
+  6. 死亡复活
+     - 联机模式下死亡不立即结束
+     - 全员死亡 → GameOver
+     - 波次结束自动半血复活+2秒无敌
 
-  6. 单例模式 (Singleton)
-     - GameManager, EventBus, ConfigLoader 为单例
+三、Bug修复
+  - 伤害双倍加成: weapon_factory 已 bake 进 weapon["damage"]，weapon_system 不再重复加
+  - 攻速: cooldown / (1.0 + attack_speed)，攻速越大冷却越短
+  - 移除: 草地系统(grass_layer)完全删除
 
-
-三、联机架构（预留）
-
-  ┌──────────┐     ┌──────────┐
-  │  主机玩家 │     │  客户端   │
-  │  (Host)  │     │  (Client) │
-  └────┬─────┘     └────┬─────┘
-       │                │
-       │   局域网 UDP    │
-       └────────┬───────┘
-                │
-    ┌───────────▼───────────┐
-    │   NetworkManager      │
-    │   - 主机: 运行权威    │
-    │   - 客户端: 输入同步  │
-    │   - ENet 传输层       │
-    └───────────────────────┘
-                │
-    ┌───────────▼───────────┐
-    │   LobbyManager        │
-    │   - 创建房间          │
-    │   - 加入房间          │
-    │   - 玩家就绪          │
-    │   - 主机确认开始      │
-    └───────────────────────┘
-
-  数据同步策略（预留）:
-    - 主机为权威服务器
-    - 客户端发送输入（移动方向）
-    - 主机同步实体状态给客户端
-    - 每个玩家独立屏幕，不分屏
+四、数据规模
+  - 敌人: 21小怪 + 11 Boss
+  - 武器: 54把(8生态×3 tier)，6近战含melee_type
+  - 道具: 25种
+  - 波次: 20波
+  - 角色: 13个(独特皮肤+差异化机制)
+  - Perk: 26个

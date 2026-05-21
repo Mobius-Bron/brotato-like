@@ -8,6 +8,7 @@ func _init(world: ECSWorld) -> void:
 
 func update(world: ECSWorld, delta: float) -> void:
 	_update_invincible(world, delta)
+	_update_regen(world, delta)
 	_process_dead(world)
 
 func deal_damage(target_id: int, damage: int) -> void:
@@ -18,6 +19,11 @@ func deal_damage(target_id: int, damage: int) -> void:
 	if hp["invincible_timer"] > 0:
 		return
 
+	if _world.players.has(target_id):
+		var dodge_chance = GameManager.stat_bonuses.get("dodge_chance", 0.0)
+		if dodge_chance > 0 and randf() < dodge_chance:
+			return
+
 	var actual_damage = damage
 	if _world.players.has(target_id):
 		actual_damage = max(1, damage - GameManager.stat_bonuses.get("armor", 0))
@@ -27,6 +33,15 @@ func deal_damage(target_id: int, damage: int) -> void:
 
 	if _world.players.has(target_id):
 		EventBus.emit("player_damaged", hp["current_hp"])
+
+func _update_regen(world: ECSWorld, delta: float) -> void:
+	for pid in world.players:
+		if not world.healths.has(pid):
+			continue
+		var hp = world.healths[pid]
+		var regen = GameManager.stat_bonuses.get("hp_regen", 0)
+		if regen > 0:
+			hp["current_hp"] = min(hp["current_hp"] + int(regen * delta), hp["max_hp"])
 
 func _update_invincible(world: ECSWorld, delta: float) -> void:
 	for eid in world.healths:
@@ -44,10 +59,12 @@ func _process_dead(world: ECSWorld) -> void:
 		if world.enemies.has(eid):
 			var data = world.enemies[eid]
 			GameManager.add_coins(data["coin_drop"])
-			GameManager.add_exp(data["xp_drop"])
+			var death_pos = world.transforms.get(eid, {}).get("position", world.player_position)
 			EventBus.emit("enemy_killed", {
 				"enemy_id": data["enemy_id"],
-				"is_boss": data.get("is_boss", false)
+				"is_boss": data.get("is_boss", false),
+				"pos": death_pos,
+				"xp_drop": data["xp_drop"]
 			})
 		if world.players.has(eid):
 			EventBus.emit("player_died")

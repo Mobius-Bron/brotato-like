@@ -2,10 +2,10 @@ extends CanvasLayer
 
 var _shop_items: Array = []
 var _shop_weapons: Array = []
-@onready var _inventory_container: VBoxContainer = $ShopPanel/VBoxContainer/InventoryContainer
-@onready var _item_container: VBoxContainer = $ShopPanel/VBoxContainer/ItemContainer
-@onready var _weapon_container: VBoxContainer = $ShopPanel/VBoxContainer/WeaponContainer
-@onready var _coin_label: Label = $ShopPanel/VBoxContainer/ButtonRow/CoinLabel
+@onready var _inventory_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/ShopRight/InventoryScroll/InventoryContainer
+@onready var _item_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/ShopLeft/ItemContainer
+@onready var _weapon_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/ShopLeft/WeaponContainer
+@onready var _coin_label: Label = $ShopPanel/MarginContainer/HBoxContainer/ShopRight/BottomRow/CoinLabel
 
 func _ready() -> void:
 	hide()
@@ -22,15 +22,16 @@ func generate_shop() -> void:
 
 	var all_items = ConfigLoader.items.duplicate()
 	all_items.shuffle()
-	for i in range(min(4, all_items.size())):
+	for i in range(min(5, all_items.size())):
 		_shop_items.append(all_items[i])
 
 	var all_weapons = ConfigLoader.weapons.duplicate()
 	all_weapons = all_weapons.filter(func(w):
-		return w.get("price", 0) > 0 and w.get("tier", 1) == 1
+		var eco = w.get("ecosystem", "")
+		return eco != "enemy" and w.get("price", 0) > 0 and w.get("tier", 1) == 1
 	)
 	all_weapons.shuffle()
-	for i in range(min(3, all_weapons.size())):
+	for i in range(min(4, all_weapons.size())):
 		_shop_weapons.append(all_weapons[i])
 
 	_coin_label.text = "金币: %d" % GameManager.coins
@@ -67,12 +68,45 @@ func _update_inventory() -> void:
 	for w in weapons:
 		counted[w] = counted.get(w, 0) + 1
 
+	var idx = 0
 	for weapon_id in counted:
 		var cfg = ConfigLoader.get_weapon(weapon_id)
 		if cfg.is_empty():
 			continue
 		var hbox = HBoxContainer.new()
-		hbox.custom_minimum_size = Vector2(0, 36)
+		hbox.custom_minimum_size = Vector2(0, 34)
+		hbox.add_theme_constant_override("separation", 4)
+
+		if weapons.size() > 1:
+			if idx > 0:
+				var up_btn = Button.new()
+				up_btn.text = "▲"
+				up_btn.custom_minimum_size = Vector2(24, 24)
+				up_btn.pressed.connect(_on_swap_weapons.bind(idx - 1, idx))
+				hbox.add_child(up_btn)
+			else:
+				var spacer = Control.new()
+				spacer.custom_minimum_size = Vector2(24, 0)
+				hbox.add_child(spacer)
+
+			if idx < weapons.size() - 1:
+				var down_btn = Button.new()
+				down_btn.text = "▼"
+				down_btn.custom_minimum_size = Vector2(24, 24)
+				down_btn.pressed.connect(_on_swap_weapons.bind(idx, idx + 1))
+				hbox.add_child(down_btn)
+			else:
+				var spacer = Control.new()
+				spacer.custom_minimum_size = Vector2(24, 0)
+				hbox.add_child(spacer)
+
+		var eco = cfg.get("ecosystem", "weapon")
+		var eco_lbl = Label.new()
+		eco_lbl.text = "[%s]" % eco
+		eco_lbl.add_theme_font_size_override("font_size", 9)
+		eco_lbl.add_theme_color_override("font_color", Color(0.5, 0.7, 0.5))
+		eco_lbl.custom_minimum_size = Vector2(50, 0)
+		hbox.add_child(eco_lbl)
 
 		var name_lbl = Label.new()
 		name_lbl.text = "%s x%d" % [cfg["name"], counted[weapon_id]]
@@ -81,7 +115,7 @@ func _update_inventory() -> void:
 
 		var sell_btn = Button.new()
 		sell_btn.text = "卖%dG" % int(cfg.get("price", 0) * 0.5)
-		sell_btn.custom_minimum_size = Vector2(60, 30)
+		sell_btn.custom_minimum_size = Vector2(55, 26)
 		sell_btn.pressed.connect(_on_sell_weapon.bind(weapon_id))
 		hbox.add_child(sell_btn)
 
@@ -91,18 +125,19 @@ func _update_inventory() -> void:
 				var merge_btn = Button.new()
 				var up_cfg = ConfigLoader.get_weapon(upgrade_id)
 				merge_btn.text = "合成%s" % up_cfg.get("name", "?")
-				merge_btn.custom_minimum_size = Vector2(80, 30)
+				merge_btn.custom_minimum_size = Vector2(72, 26)
 				merge_btn.pressed.connect(_on_merge_weapons.bind(weapon_id))
 				hbox.add_child(merge_btn)
 
 		_inventory_container.add_child(hbox)
+		idx += 1
 
 func _update_shop_items() -> void:
 	for i in range(_shop_items.size()):
 		var item = _shop_items[i]
 		var btn = Button.new()
-		btn.text = "%s (%dG)" % [item["name"], item["price"]]
-		btn.custom_minimum_size = Vector2(200, 44)
+		btn.text = "%s - %s (%dG)" % [item["name"], item["desc"], item["price"]]
+		btn.custom_minimum_size = Vector2(0, 40)
 		btn.disabled = GameManager.coins < item["price"]
 		btn.pressed.connect(_on_buy_item.bind(i))
 		_item_container.add_child(btn)
@@ -112,8 +147,9 @@ func _update_shop_weapons() -> void:
 		var wpn = _shop_weapons[i]
 		var btn = Button.new()
 		var full = GameManager.owned_weapons.size() >= 6
-		btn.text = "%s (%dG)%s" % [wpn["name"], wpn["price"], " [已满]" if full else ""]
-		btn.custom_minimum_size = Vector2(200, 44)
+		var eco = wpn.get("ecosystem", "weapon")
+		btn.text = "[%s] %s (%dG)%s" % [eco, wpn["name"], wpn["price"], " [已满]" if full else ""]
+		btn.custom_minimum_size = Vector2(0, 40)
 		btn.disabled = full or GameManager.coins < wpn["price"]
 		btn.pressed.connect(_on_buy_weapon.bind(i))
 		_weapon_container.add_child(btn)
@@ -156,8 +192,11 @@ func _on_merge_weapons(weapon_id: String) -> void:
 	var result = GameManager.try_merge_weapons(weapon_id)
 	if result != "":
 		var cfg = ConfigLoader.get_weapon(result)
-		print("合成成功: %s" % cfg.get("name", result))
 		_update_display()
+
+func _on_swap_weapons(idx_a: int, idx_b: int) -> void:
+	GameManager.swap_weapons(idx_a, idx_b)
+	_update_display()
 
 func _on_refresh_pressed() -> void:
 	refresh_shop()

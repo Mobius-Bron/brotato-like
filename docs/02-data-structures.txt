@@ -5,109 +5,111 @@
 一、ECS 组件（纯数据，无逻辑）
 
 TransformComponent:
-  - Position: Vector2         # 世界坐标位置
+  - position: Vector2         # 世界坐标位置
 
 HealthComponent:
-  - CurrentHP: int
-  - MaxHP: int
-  - InvincibleTime: float     # 无敌帧时间（受伤后短暂无敌）
-  - InvincibleTimer: float
+  - current_hp: int
+  - max_hp: int
+  - invincible_time: float     # 无敌帧时间
+  - invincible_timer: float
 
 MovementComponent:
-  - Speed: float              # 移动速度（像素/秒）
-  - Direction: Vector2        # 移动方向（单位向量）
-  - IsPlayer: bool            # 是否是玩家（决定输入来源）
+  - speed: float              # 移动速度（像素/秒）
+  - direction: Vector2        # 移动方向（单位向量）
+  - is_player: bool            # 是否玩家
 
 WeaponComponent:
-  - WeaponId: string          # 武器配置 ID
-  - CooldownRemaining: float  # 剩余冷却时间
-  - BaseCooldown: float       # 基础冷却时间
-  - Damage: int               # 武器伤害
-  - Range: float              # 攻击范围
-  - BulletSpeed: float        # 子弹速度
-  - BulletSize: float         # 子弹大小
-  - BulletCount: int          # 每次发射子弹数
-  - Spread: float             # 散射角度（度）
-  - Targeting: string         # 瞄准方式: "nearest"
+  - weapon_id: String
+  - cooldown_remaining: float
+  - base_cooldown: float
+  - damage: int
+  - range: float
+  - bullet_speed: float
+  - bullet_size: float
+  - bullet_count: int
+  - spread: float
+  - targeting: String          # "nearest" / "player"
+  - bullet_shape: String
+  - bullet_color: String
+  - melee: bool                # 是否近战武器
+  - melee_type: String         # "slash"/"thrust"/"blunt"
 
 CollisionComponent:
-  - Radius: float             # 碰撞半径
+  - radius: float
 
 SpriteComponent:
-  - Shape: string             # 形状: "circle","rect","diamond","triangle","hexagon"
-  - Color: Color              # 颜色
-  - Size: float               # 大小
+  - shape: String              # circle/rect/diamond/triangle/hexagon/barrel/arc/composite
+  - color: Color
+  - size: float
+  - rotation: float
+  - outline_radius: float      # 黑色描边大小
+  - height: float              # 伪3D高度系数（>0.8绘制地面阴影）
+  - sub_sprites: Array         # 复合子精灵
 
 LifetimeComponent:
-  - RemainingTime: float      # 剩余存活时间（秒）
+  - remaining_time: float
 
-PlayerTag:
-  - (标记组件，空结构)
-
-EnemyTag:
-  - (标记组件，空结构)
-
+PlayerTag: { }
+EnemyTag: {
+  - enemy_id: String
+  - damage: int
+  - xp_drop: int
+  - coin_drop: int
+  - is_boss: bool
+  - base_speed: float
+}
 ProjectileTag:
-  - OwnerId: int              # 发射者实体 ID
-  - Damage: int               # 伤害值
-
+  - owner_id: int
+  - damage: int
+  - pierce: int                # 穿透次数
+XPOrb:
+  - xp_value: int              # 经验值
 
 二、配置数据结构
 
 EnemyConfig:
-  - Id: string                # 敌人 ID
-  - Name: string              # 显示名称
-  - Shape: string             # 形状
-  - Color: string             # 颜色（十六进制）
-  - HP: int                   # 生命值
-  - Speed: float              # 移动速度
-  - Damage: int               # 碰撞伤害
-  - Size: float               # 体型大小
-  - WeaponId: string          # 携带武器 ID（空则近战）
-  - XpDrop: int               # 经验掉落
-  - CoinDrop: int             # 金币掉落
-  - IsBoss: bool              # 是否是 Boss
+  - id, name, shape, color, hp, speed, damage, size
+  - weapon_id, xp_drop, coin_drop, is_boss
+  - on_death: String (可空)
 
 WeaponConfig:
-  - Id: string
-  - Name: string
-  - Cooldown: float           # 冷却时间（秒）
-  - Damage: int               # 伤害
-  - Range: float              # 射程
-  - BulletSpeed: float        # 子弹速度
-  - BulletSize: float         # 子弹大小
-  - BulletCount: int          # 子弹数
-  - Spread: float             # 散射角度
-  - BulletShape: string       # 子弹形状
-  - BulletColor: string       # 子弹颜色
-  - Targeting: string         # 瞄准方式
-  - Price: int                # 商店价格
+  - id, name, ecosystem, tier (1/2/3)
+  - cooldown, damage, range, bullet_speed, bullet_size
+  - bullet_count, spread, bullet_shape, bullet_color, targeting
+  - melee: bool, melee_type: String, price, element, explosion
 
 ItemConfig:
-  - Id: string
-  - Name: string
-  - Description: string
-  - Type: string              # "stat"(属性),"weapon"(武器)
-  - StatKey: string           # 修改的属性名
-  - StatValue: float          # 修改值
-  - Price: int
+  - id, name, desc, type, stat_key, stat_value, price
+  - stat_key2, stat_value2 (可选第二属性)
+
+CharacterConfig:
+  - id, name, desc
+  - starting_weapons: Array
+  - stat_modifiers: Dict     # 角色初始属性加成(含负值)
+
+PerkConfig:
+  - id, name, desc
+  - modifiers: Array[Dict]   # 多属性修改
+  - rarity: int (1默认/2稀有)
 
 WaveConfig:
-  - WaveNumber: int           # 波次编号
-  - EnemyGroups: string       # 敌人组配置 "id:count,id:count"
-  - SpawnInterval: float      # 生成间隔（秒）
-  - Duration: float           # 波次持续时间
-  - IsBossWave: bool          # 是否是 Boss 波次
-  - BossId: string            # Boss ID（如果是 Boss 波次）
+  - wave_number, enemy_groups ("id:weight,...")
+  - spawn_interval, duration, is_boss_wave, boss_id
 
+三、玩家属性（20项）
+  max_hp, hp_regen, speed, damage, damage_percent
+  attack_speed, crit_chance, crit_damage, armor, dodge_chance
+  range, luck, xp_gain, coin_gain, pickup_radius
+  knockback, pierce, life_steal, explosion_chance, explosion_size
 
-三、运行时数据
+四、运行时数据（GameManager）
+  - state: 7状态 (MENU/CHAR_SELECT/PLAYING/PERK_SELECT/SHOP/WIN/LOSE)
+  - coins, current_wave, player_level, player_exp, exp_to_next
+  - kills, owned_items, owned_weapons, selected_character
+  - pending_levels, perk_choices, stat_bonuses (20项)
 
-GameData:
-  - Coins: int                # 当前金币
-  - CurrentWave: int          # 当前波次
-  - PlayerLevel: int          # 玩家等级
-  - PlayerExp: int            # 当前经验
-  - PlayerExpToNext: int      # 升级所需经验
-  - OwnedItems: List<string>  # 拥有的道具 ID 列表
-  - OwnedWeapons: List<string># 拥有的武器 ID 列表
+五、联机数据（MultiplayerManager）
+  - is_host: bool, is_online: bool
+  - peer: ENetMultiplayerPeer
+  - connected_players: Dictionary
+  - DEFAULT_PORT: 9876, MAX_PLAYERS: 4

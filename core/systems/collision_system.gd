@@ -33,7 +33,12 @@ func _check_projectile_hit(world: ECSWorld) -> void:
 			if dist < combined_radius:
 				var damage = world.projectiles[pid]["damage"]
 				_health_system.deal_damage(tid, damage)
-				destroyed_projectiles.append(pid)
+
+				var pierce = world.projectiles[pid].get("pierce", 0)
+				if pierce > 0:
+					world.projectiles[pid]["pierce"] = pierce - 1
+				else:
+					destroyed_projectiles.append(pid)
 				break
 
 	for pid in destroyed_projectiles:

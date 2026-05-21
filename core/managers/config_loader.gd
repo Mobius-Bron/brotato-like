@@ -4,6 +4,8 @@ var enemies: Array = []
 var weapons: Array = []
 var items: Array = []
 var waves: Array = []
+var characters: Array = []
+var perks: Array = []
 var _loaded := false
 
 func _ready() -> void:
@@ -16,6 +18,8 @@ func load_all() -> void:
 	weapons = _load_json("res://data/weapons.json")
 	items = _load_json("res://data/items.json")
 	waves = _load_json("res://data/waves.json")
+	characters = _load_json("res://data/characters.json")
+	perks = _load_json("res://data/perks.json")
 	_loaded = true
 
 func _load_json(path: String) -> Array:
@@ -61,3 +65,32 @@ func get_wave(num: int) -> Dictionary:
 		if w.get("wave_number", -1) == num:
 			return w
 	return {}
+
+func get_character(id: String) -> Dictionary:
+	for c in characters:
+		if c.get("id", "") == id:
+			return c
+	return {}
+
+func get_perk(id: String) -> Dictionary:
+	for p in perks:
+		if p.get("id", "") == id:
+			return p
+	return {}
+
+func get_random_perks(count: int) -> Array:
+	if perks.size() == 0:
+		return []
+	var pool = perks.duplicate()
+	pool.shuffle()
+	var result: Array = []
+	for i in range(min(count, pool.size())):
+		result.append(pool[i])
+	return result
+
+func get_weapons_by_ecosystem(eco: String) -> Array:
+	var result: Array = []
+	for w in weapons:
+		if w.get("ecosystem", "") == eco:
+			result.append(w)
+	return result

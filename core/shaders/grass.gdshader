@@ -45,7 +45,7 @@ void fragment() {
 		if (float(i) >= flatten_count) break;
 		vec2 fp = flatten_positions[i];
 		float dist = length(uv - fp);
-		float factor = clamp(1.0 - dist / 0.08, 0.0, 1.0);
+		float factor = clamp(1.0 - dist / 0.04, 0.0, 1.0);
 		flatten = max(flatten, factor);
 	}
 

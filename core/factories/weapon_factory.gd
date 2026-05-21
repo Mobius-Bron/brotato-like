@@ -18,12 +18,18 @@ static func create_weapon_component(weapon_id: String) -> Dictionary:
 		"targeting": cfg["targeting"],
 		"bullet_shape": cfg["bullet_shape"],
 		"bullet_color": cfg["bullet_color"],
-		"melee": cfg.get("melee", false)
+		"melee": cfg.get("melee", false),
+		"melee_type": cfg.get("melee_type", "slash"),
+		"ecosystem": cfg.get("ecosystem", ""),
+		"element": cfg.get("element", "")
 	}
 
 static func apply_stat_bonuses(weapon_data: Dictionary, bonuses: Dictionary) -> Dictionary:
 	var modified = weapon_data.duplicate()
-	modified["damage"] = int(modified["damage"] + bonuses.get("damage", 0))
+	var flat_dmg = bonuses.get("damage", 0)
+	var pct_dmg = bonuses.get("damage_percent", 0.0)
+	modified["damage"] = int(modified["damage"] * (1.0 + pct_dmg)) + flat_dmg
 	modified["range"] = int(modified["range"] + bonuses.get("range", 0))
-	modified["base_cooldown"] = modified["base_cooldown"] * bonuses.get("cooldown_mult", 1.0)
+	var atk_spd = maxf(bonuses.get("attack_speed", 0.0), -0.75)
+	modified["base_cooldown"] = modified["base_cooldown"] / (1.0 + atk_spd)
 	return modified

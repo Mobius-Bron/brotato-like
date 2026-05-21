@@ -4,143 +4,113 @@
 
 一、场景节点树
 
-MainMenu.tscn:
-  Control (MainMenuUI)
-    ├── VBoxContainer
-    │   ├── Label "BrotatoLike"
-    │   ├── Button "开始游戏"
-    │   └── Button "退出游戏"
+main_menu.tscn:
+  Control (main_menu_ui.gd)
+    ├── ColorRect (暗色背景)
+    └── VBoxContainer
+        ├── Label "BROTATO LIKE"
+        ├── Button "单人模式"
+        ├── Button "联机模式"
+        └── Button "退出游戏"
 
 ──────────────────────────────────────
 
-GameWorld.tscn:
-  Node2D (GameWorld)                              ← 主入口脚本
-    ├── Node2D (RenderLayer)                       ← RenderSystem 绘制目标
-    ├── Node2D (SystemRunner)                      ← 驱动所有 System
-    └── CanvasLayer (HUD)                          ← UI 覆盖层
-        ├── Label (WaveLabel)                      ← 波次显示
-        ├── Label (HealthLabel)                    ← 生命值
-        ├── Label (TimerLabel)                     ← 倒计时
-        ├── Label (CoinLabel)                      ← 金币
-        ├── Label (ExpLabel)                       ← 经验
-        ├── ProgressBar (HealthBar)                ← 血条
-        └── ProgressBar (ExpBar)                   ← 经验条
+lobby.tscn:
+  Control (lobby_ui.gd)
+    ├── ColorRect (暗色背景)
+    └── Panel
+        └── VBoxContainer
+            ├── Label "联机模式"
+            ├── Label "输入主机IP地址"
+            ├── LineEdit (IPInput: 127.0.0.1)
+            ├── Button "创建主机" → MultiplayerManager.host_game()
+            ├── Button "加入游戏" → MultiplayerManager.join_game(ip)
+            ├── Label (StatusLabel)
+            └── Button "返回"
 
 ──────────────────────────────────────
 
-ShopOverlay.tscn:
-  CanvasLayer (ShopUI)                             ← 商店脚本
-    ├── ColorRect (DarkOverlay)                    ← 半透明遮罩
-    ├── Panel (ShopPanel)
-    │   ├── VBoxContainer
-    │   │   ├── Label "商店"
-    │   │   ├── HBoxContainer (ItemSlots)          ← 道具槽 x4
-    │   │   │   ├── ItemSlot1 (Panel + Button)
-    │   │   │   ├── ItemSlot2
-    │   │   │   ├── ItemSlot3
-    │   │   │   └── ItemSlot4
-    │   │   ├── HBoxContainer (WeaponSlots)        ← 武器槽 x3
-    │   │   │   ├── WeaponSlot1
-    │   │   │   ├── WeaponSlot2
-    │   │   │   └── WeaponSlot3
-    │   │   └── Button "下一波"
+character_select.tscn:
+  Control (character_select.gd)
+    ├── ColorRect (暗色背景)
+    ├── Label "选择角色"
+    └── ScrollContainer
+        └── GridContainer (4列)
+            └── Panel×13 (角色卡片)
 
 ──────────────────────────────────────
 
-LobbyMap.tscn:  (预留 - 网络联机)
-  Control (LobbyUI)
-    ├── Label "等待大厅"
-    ├── VBoxContainer (PlayerList)
-    └── Button "开始游戏" (仅主机可见)
-
+game_world.tscn:
+  Node2D (game_world.gd)
+    ├── Node2D (MudLayer: 泥地shader)
+    ├── Node2D (RenderLayer: ECS渲染)
+    ├── CanvasLayer (HUD: HP/EXP/Wave/Timer/Coin)
+    ├── ShopOverlay (左商店右背包)
+    ├── ResultsOverlay (结算)
+    └── PerkSelect (波束结束奖励)
 
 二、运行时对象关系
 
-  GameWorld (Node2D, 主脚本)
-    │
+  GameWorld (Node2D)
     ├── owns → ECSWorld
     │   ├── Entities[]
-    │   ├── Component Storages
-    │   └── Systems[]
+    │   ├── Component Storages (11个: +xp_orbs)
+    │   └── Systems[] (8个)
     │       ├── MovementSystem
-    │       ├── WeaponSystem
+    │       ├── WeaponOrbitSystem
+    │       ├── WeaponSystem (暴击/吸血/近战动画砍刺钝)
     │       ├── CollisionSystem
-    │       ├── HealthSystem
+    │       ├── HealthSystem (闪避/回复)
     │       ├── SpawnSystem
-    │       └── RenderSystem (draws to RenderLayer)
+    │       ├── LifetimeSystem
+    │       └── RenderSystem (伪3D阴影+描边)
     │
-    ├── owns → ObjectPool<Entity>
+    ├── _collect_xp_orbs() → 拾取范围内经验球
+    ├── _player_dead → 联机死亡追踪
+    ├── _revive_dead_players() → 波束半血复活
     │
-    ├── references → GameManager (单例)
-    │   ├── CurrentState: GameState {MENU,PLAYING,SHOP,WIN,LOSE}
-    │   └── GameData (coins, wave, exp, items, weapons)
-    │
-    ├── references → WaveManager
-    │   ├── CurrentWave: int
-    │   ├── WaveTimer: float
-    │   └── IsBossWave: bool
-    │
-    └── references → EventBus (单例)
-        └── Events: Dictionary<string, Action<object>>
+    ├── references → GameManager
+    ├── references → EventBus
+    └── references → MultiplayerManager (联机时)
 
+三、每帧更新流程
 
-三、每帧更新流程 (ECSWorld.Update)
+  _process(delta):
+    if _between_waves or _paused or PERK_SELECT → return
 
-  _Process(delta):
-    1. SpawnSystem.Update(world, delta)
-       - 检查波次计时器，按配置生成敌人
-    2. MovementSystem.Update(world, delta)
-       - 玩家：读取输入方向，更新 Movement.Direction
-       - 敌人：AI 逻辑，追踪玩家
-       - 所有：Position += Direction * Speed * delta
-    3. WeaponSystem.Update(world, delta)
-       - 遍历所有 WeaponComponent
-       - 减少冷却计时器
-       - 冷却完毕 → 查找最近敌人 → 发射子弹
-    4. CollisionSystem.Update(world, delta)
-       - 子弹 vs 敌人 / 敌人 vs 玩家
-       - 检测圆形碰撞
-       - 触发伤害事件
-    5. HealthSystem.Update(world, delta)
-       - 处理伤害
-       - 更新无敌帧
-       - 生命值 <= 0 → 死亡处理
-       - 掉落金币/经验
-    6. RenderSystem.Update(world, delta)
-       - 在 RenderLayer._Draw() 中绘制所有实体
-       - 根据 SpriteComponent 绘制对应形状和颜色
+    1. SpawnSystem.update()
+    2. MovementSystem.update()
+    3. WeaponOrbitSystem.update()
+    4. WeaponSystem.update() (近战: slash/thrust/blunt 多帧动画)
+    5. CollisionSystem.update() (pierce穿透)
+    6. HealthSystem.update() (闪避/dodge + 回复/regen)
+    7. LifetimeSystem.update()
+    8. RenderSystem.update() (阴影+描边)
+    9. _collect_xp_orbs() (拾取经验球)
+    10. _update_hud()
 
+四、联机流程
 
-四、类图关系
+  Host: create ENetServer(port 9876) → 等待连接
+  Client: 输入IP → ENetClient.connect(host_ip, 9876)
+  → 连接成功 → 角色选择 → 战斗
+  → Host权威: 运行全部ECS系统 + 广播状态
+  → 死亡: 标记_dead → 波束结束_revive (半血)
 
-  ┌──────────────┐         ┌──────────────┐
-  │  GameManager │◄────────│  EventBus    │
-  │  (单例)      │         │  (单例)      │
-  └──────┬───────┘         └──────┬───────┘
-         │                        │
-         │ owns                   │ fires events
-         ▼                        ▼
-  ┌──────────────┐         ┌──────────────┐
-  │  GameData    │         │  UI / Systems│
-  └──────────────┘         └──────────────┘
+五、经验流程
 
-  ┌──────────────┐
-  │  ECSWorld    │◄──── owns ──── GameWorld (Node2D)
-  │              │
-  │ - Entities   │
-  │ - Components │
-  │ - Systems    │
-  └──────┬───────┘
-         │ uses
-         ▼
-  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-  │EnemyFactory  │    │WeaponFactory │    │ProjFactory   │
-  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘
-         │                   │                   │
-         └───────────────────┼───────────────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │  ConfigLoader    │
-                    │  (加载 CSV)      │
-                    └──────────────────┘
+  enemy_killed → _on_enemy_killed(pos, xp_drop)
+  → _create_xp_orb(pos+random, value) → diamond绿色球
+  → 每帧_collect_xp_orbs → 玩家pickup_radius范围
+  → GameManager.add_exp(value) → level up → pending_levels++
+  → wave_cleared → show_perks（如有pending_levels）
+
+六、商店流程
+
+  wave_cleared → 检查 pending_levels → Perk 选择 → advance_wave_or_shop
+  → ShopUI.generate_shop()
+    → 左: 5道具 + 4武器(tier1) + 刷新按钮
+    → 右: ScrollContainer背包 + ▲▼交换 + 合成 + 出售
+    → 右下: CoinLabel + NextWaveButton
+  → next_wave → start_next_wave()
+    → _refresh_player_stats() + _spawn_weapon_entities()

@@ -1,65 +1,27 @@
 [
-  {
-    "id": "hp_up",
-    "name": "生命提升",
-    "desc": "最大生命值 +10",
-    "type": "stat",
-    "stat_key": "max_hp",
-    "stat_value": 10,
-    "price": 15
-  },
-  {
-    "id": "speed_up",
-    "name": "速度提升",
-    "desc": "移动速度 +20",
-    "type": "stat",
-    "stat_key": "speed",
-    "stat_value": 20,
-    "price": 10
-  },
-  {
-    "id": "damage_up",
-    "name": "攻击提升",
-    "desc": "所有武器伤害 +3",
-    "type": "stat",
-    "stat_key": "damage",
-    "stat_value": 3,
-    "price": 20
-  },
-  {
-    "id": "hp_regen",
-    "name": "生命回复",
-    "desc": "回复 15 点生命",
-    "type": "stat",
-    "stat_key": "heal",
-    "stat_value": 15,
-    "price": 12
-  },
-  {
-    "id": "armor",
-    "name": "护甲",
-    "desc": "受伤减免 2 点",
-    "type": "stat",
-    "stat_key": "armor",
-    "stat_value": 2,
-    "price": 25
-  },
-  {
-    "id": "atk_speed",
-    "name": "攻速提升",
-    "desc": "攻击冷却 -15%",
-    "type": "stat",
-    "stat_key": "cooldown_mult",
-    "stat_value": 0.85,
-    "price": 20
-  },
-  {
-    "id": "range_up",
-    "name": "射程提升",
-    "desc": "武器射程 +50",
-    "type": "stat",
-    "stat_key": "range",
-    "stat_value": 50,
-    "price": 18
-  }
+  {"id":"hp_up","name":"生命提升","desc":"最大生命值+10","type":"stat","stat_key":"max_hp","stat_value":10,"price":15},
+  {"id":"hp_big","name":"大型生命","desc":"最大生命值+25","type":"stat","stat_key":"max_hp","stat_value":25,"price":35},
+  {"id":"speed_up","name":"速度提升","desc":"移动速度+15","type":"stat","stat_key":"speed","stat_value":15,"price":12},
+  {"id":"speed_big","name":"疾跑","desc":"移动速度+30","type":"stat","stat_key":"speed","stat_value":30,"price":28},
+  {"id":"damage_up","name":"攻击提升","desc":"伤害+3","type":"stat","stat_key":"damage","stat_value":3,"price":20},
+  {"id":"damage_pct","name":"力量增幅","desc":"伤害+8%","type":"stat","stat_key":"damage_percent","stat_value":0.08,"price":22},
+  {"id":"damage_both","name":"全面强化","desc":"伤害+2","type":"stat","stat_key":"damage","stat_value":2,"stat_key2":"damage_percent","stat_value2":0.05,"price":35},
+  {"id":"hp_regen","name":"生命回复","desc":"每秒回复2点生命","type":"stat","stat_key":"hp_regen","stat_value":2,"price":18},
+  {"id":"heal","name":"急救包","desc":"回复20点生命","type":"stat","stat_key":"heal","stat_value":20,"price":10},
+  {"id":"armor","name":"护甲","desc":"受伤减免3点","type":"stat","stat_key":"armor","stat_value":3,"price":25},
+  {"id":"armor_big","name":"重甲","desc":"受伤减免6点","type":"stat","stat_key":"armor","stat_value":6,"price":50},
+  {"id":"atk_speed","name":"攻速提升","desc":"攻击速度+10%","type":"stat","stat_key":"attack_speed","stat_value":0.10,"price":22},
+  {"id":"atk_speed_big","name":"急速","desc":"攻击速度+20%","type":"stat","stat_key":"attack_speed","stat_value":0.20,"price":45},
+  {"id":"range_up","name":"射程提升","desc":"武器射程+40","type":"stat","stat_key":"range","stat_value":40,"price":18},
+  {"id":"crit_up","name":"暴击率","desc":"暴击率+5%","type":"stat","stat_key":"crit_chance","stat_value":0.05,"price":25},
+  {"id":"crit_dmg","name":"暴击伤害","desc":"暴击伤害+25%","type":"stat","stat_key":"crit_damage","stat_value":0.25,"price":30},
+  {"id":"dodge_up","name":"闪避","desc":"闪避率+5%","type":"stat","stat_key":"dodge_chance","stat_value":0.05,"price":28},
+  {"id":"luck_up","name":"幸运","desc":"幸运+5","type":"stat","stat_key":"luck","stat_value":5,"price":20},
+  {"id":"xp_up","name":"经验加成","desc":"经验获取+15%","type":"stat","stat_key":"xp_gain","stat_value":0.15,"price":25},
+  {"id":"coin_up","name":"金币加成","desc":"金币获取+20%","type":"stat","stat_key":"coin_gain","stat_value":0.20,"price":25},
+  {"id":"pickup_up","name":"拾取范围","desc":"拾取范围+20","type":"stat","stat_key":"pickup_radius","stat_value":20,"price":15},
+  {"id":"knockback","name":"击退","desc":"击退效果+15%","type":"stat","stat_key":"knockback","stat_value":0.15,"price":18},
+  {"id":"pierce","name":"穿透","desc":"子弹穿透+1","type":"stat","stat_key":"pierce","stat_value":1,"price":35},
+  {"id":"lifesteal","name":"吸血","desc":"生命偷取+4%","type":"stat","stat_key":"life_steal","stat_value":0.04,"price":30},
+  {"id":"explosion","name":"爆炸","desc":"击杀爆炸概率+6%","type":"stat","stat_key":"explosion_chance","stat_value":0.06,"price":32}
 ]

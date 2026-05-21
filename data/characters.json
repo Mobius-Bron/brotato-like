@@ -1,0 +1,93 @@
+[
+  {
+    "id": "soldier",
+    "name": "士兵",
+    "desc": "均衡全能型，攻防兼备。手枪开局。",
+    "starting_weapons": ["pistol"],
+    "stat_modifiers": {"max_hp": 5, "speed": 5, "damage": 2, "damage_percent": 0.05}
+  },
+  {
+    "id": "berserker",
+    "name": "狂战士",
+    "desc": "双持近战专家，每拥有近战武器+5%攻速。只使用近战武器。",
+    "starting_weapons": ["sword", "dagger"],
+    "stat_modifiers": {"max_hp": 15, "attack_speed": 0.20, "damage": 5, "dodge_chance": 0.05, "range": -80}
+  },
+  {
+    "id": "ranger",
+    "name": "游侠",
+    "desc": "精准射手。子弹有+10%概率触发致命一击伤害翻倍。",
+    "starting_weapons": ["crossbow"],
+    "stat_modifiers": {"damage": 3, "range": 100, "attack_speed": 0.08, "crit_chance": 0.10, "crit_damage": 0.80, "max_hp": -10}
+  },
+  {
+    "id": "shotgunner",
+    "name": "爆破手",
+    "desc": "爆炸武器伤害+20%，霰弹枪延迟-15%。",
+    "starting_weapons": ["shotgun", "grenade_launcher"],
+    "stat_modifiers": {"max_hp": 8, "damage": 3, "range": -40, "explosion_chance": 0.10, "explosion_size": 1}
+  },
+  {
+    "id": "juggernaut",
+    "name": "重装兵",
+    "desc": "极高护甲和生命，但移动缓慢。无法获得闪避。",
+    "starting_weapons": ["mace", "sword_broad"],
+    "stat_modifiers": {"max_hp": 35, "armor": 10, "speed": -35, "dodge_chance": -0.99, "damage": 4}
+  },
+  {
+    "id": "shadow",
+    "name": "暗影刺客",
+    "desc": "高闪避高暴击，但生命极低。暴击伤害翻倍。",
+    "starting_weapons": ["dagger", "dagger"],
+    "stat_modifiers": {"attack_speed": 0.35, "crit_chance": 0.15, "crit_damage": 1.50, "dodge_chance": 0.15, "speed": 30, "max_hp": -25}
+  },
+  {
+    "id": "engineer",
+    "name": "工程师",
+    "desc": "擅长远程自动武器，射速极高但伤害降低。最多携带4把武器。",
+    "starting_weapons": ["rifle", "smg", "pistol"],
+    "stat_modifiers": {"range": 50, "attack_speed": 0.25, "damage_percent": -0.20, "max_hp": 5, "pickup_radius": 40}
+  },
+  {
+    "id": "plague_doctor",
+    "name": "瘟疫医生",
+    "desc": "击杀敌人回复2点生命。吸血+5%。低速高防。",
+    "starting_weapons": ["staff_fire", "wand"],
+    "stat_modifiers": {"hp_regen": 4, "max_hp": 8, "life_steal": 0.05, "speed": -15, "armor": 4}
+  },
+  {
+    "id": "merchant",
+    "name": "商人",
+    "desc": "金币收益翻倍，商店可免费刷新一次。属性全面偏低。",
+    "starting_weapons": ["pistol", "pistol"],
+    "stat_modifiers": {"coin_gain": 1.0, "luck": 10, "damage": -4, "max_hp": -8, "xp_gain": 0.15}
+  },
+  {
+    "id": "gladiator",
+    "name": "角斗士",
+    "desc": "近战伤害+30%，每击杀一个敌人+1临时攻击（持续本章）。",
+    "starting_weapons": ["sword", "sword_broad", "spear"],
+    "stat_modifiers": {"damage": 8, "attack_speed": 0.12, "max_hp": 12, "armor": 3, "speed": -15, "range": -60, "damage_percent": 0.10}
+  },
+  {
+    "id": "elementalist",
+    "name": "元素师",
+    "desc": "魔法武器伤害+40%。基础生命极低。",
+    "starting_weapons": ["staff_ice", "staff_fire"],
+    "stat_modifiers": {"damage_percent": 0.40, "damage": 2, "max_hp": -20, "crit_damage": 0.40, "pierce": 1}
+  },
+  {
+    "id": "survivor",
+    "name": "生存专家",
+    "desc": "高闪避高回复。受伤后2秒内移动速度+40%。",
+    "starting_weapons": ["pistol"],
+    "stat_modifiers": {"dodge_chance": 0.18, "hp_regen": 3, "max_hp": 20, "xp_gain": 0.30, "damage": -3, "speed": 10}
+  },
+  {
+    "id": "lucky",
+    "name": "幸运星",
+    "desc": "极高幸运，所有概率效果翻倍。但攻击力为0。",
+    "starting_weapons": ["wand"],
+    "stat_modifiers": {"luck": 20, "crit_chance": 0.12, "coin_gain": 0.50, "xp_gain": 0.50, "damage": -6, "damage_percent": 0.15}
+  }
+]

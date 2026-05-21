@@ -1,0 +1,75 @@
+[gd_scene load_steps=2 format=3 uid="uid://results_overlay_001"]
+
+[ext_resource type="Script" path="res://core/ui/results_overlay.gd" id="1_script"]
+
+[node name="ResultsOverlay" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 3000.0
+offset_bottom = 3000.0
+color = Color(0, 0, 0, 0.75)
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -180.0
+offset_right = 220.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 25.0
+offset_right = -30.0
+offset_bottom = -25.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "阵亡"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+
+[node name="WaveLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "到达波次: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="CoinLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "金币: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="LevelLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "等级: 1"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="KillLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "击杀: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="ReturnButton" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "返回主菜单"
+custom_minimum_size = Vector2(0, 44)
+theme_override_font_sizes/font_size = 22
+
+[connection signal="pressed" from="Panel/VBoxContainer/ReturnButton" to="." method="_on_return_pressed"]

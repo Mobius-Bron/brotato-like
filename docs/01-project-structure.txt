@@ -4,70 +4,61 @@
 
 项目根目录: brotato-like/
 
-core/                           # 全部程序代码（C#）
+core/                           # 程序代码（GDScript）
   ecs/                          # ECS 框架核心
-    ECSWorld.cs                 # ECS 世界容器（实体+组件+系统）
-  components/                   # 数据组件（纯数据 struct/class）
-    TransformComponent.cs       # 位置组件
-    HealthComponent.cs          # 生命值组件
-    MovementComponent.cs        # 移动组件
-    WeaponComponent.cs          # 武器组件
-    CollisionComponent.cs       # 碰撞组件
-    SpriteComponent.cs          # 精灵渲染组件
-    LifetimeComponent.cs        # 生命周期组件（子弹等）
-    PlayerTag.cs                # 玩家标记
-    EnemyTag.cs                 # 敌人标记
-    ProjectileTag.cs            # 子弹标记
+    ecs_world.gd                # ECS 世界容器（实体+组件+系统+xp_orbs）
   systems/                      # 系统（处理逻辑）
-    ISystem.cs                  # 系统接口
-    MovementSystem.cs           # 移动系统
-    WeaponSystem.cs             # 武器系统（自动瞄准+射击）
-    CollisionSystem.cs          # 碰撞检测系统
-    HealthSystem.cs             # 生命值/死亡处理系统
-    SpawnSystem.cs              # 敌人生成系统
-    RenderSystem.cs             # 集中渲染系统
+    movement_system.gd          # 移动 + 敌人互相避让 + 追踪玩家
+    weapon_system.gd            # 自动瞄准+射击+近战动画(砍/刺/钝)+暴击+吸血
+    weapon_orbit_system.gd      # 武器环绕玩家轨道计算
+    collision_system.gd         # 碰撞检测（支持穿透）
+    health_system.gd            # 生命/死亡/无敌/闪避/回复
+    spawn_system.gd             # 权重制出怪 + 远离玩家随机
+    render_system.gd            # 伪3D阴影 + 描边 + 形状渲染
+    lifetime_system.gd          # 临时实体过期销毁
   managers/                     # 全局管理器
-    GameManager.cs              # 游戏状态管理
-    WaveManager.cs              # 波次管理
-    EventBus.cs                 # 事件系统
-    ConfigLoader.cs             # CSV 配置加载
+    game_manager.gd             # 游戏状态管理（7状态 + 20属性）
+    event_bus.gd                # 全局事件系统（15种事件）
+    config_loader.gd            # JSON加载器（6种配置）
+    multiplayer_manager.gd      # LAN联机管理器（ENet）
   factories/                    # 工厂类
-    EnemyFactory.cs             # 敌人创建工厂
-    WeaponFactory.cs            # 武器装备工厂
-    ProjectileFactory.cs        # 子弹工厂
-  pool/                         # 对象池
-    ObjectPool.cs               # 泛型对象池
-  data/                         # 运行时数据模型
-    EnemyConfig.cs              # 敌人配置数据
-    WeaponConfig.cs             # 武器配置数据
-    ItemConfig.cs               # 道具配置数据
-    WaveConfig.cs               # 波次配置数据
-    GameData.cs                 # 游戏运行时数据（玩家金币/经验等）
+    enemy_factory.gd            # 敌人工厂 + 复合精灵
+    weapon_factory.gd           # 武器属性加成（攻速/伤害%/melee_type）
+    projectile_factory.gd       # 子弹工厂（支持穿透）
   ui/                           # UI 脚本
-    MainMenuUI.cs               # 主菜单
-    GameHUD.cs                  # 战斗 HUD
-    ShopUI.cs                   # 商店界面
-  network/                      # 联机架构（预留）
-    NetworkManager.cs           # 网络管理器（预留）
-    LobbyManager.cs             # 大厅管理（预留）
+    main_menu_ui.gd             # 主菜单（单人/联机/退出）
+    lobby_ui.gd                 # 联机大厅（Host/Join）
+    character_select.gd         # 角色选择（13角色卡片）
+    game_world.gd               # 核心游戏世界（XP球拾取+复活）
+    render_layer.gd             # 渲染桥接层
+    shader_rect.gd              # 泥地shader层
+    shop_ui.gd                  # 商店（背包+合成+交换+刷新）
+    perk_select.gd              # 波次结束Perk选择
+    results_overlay.gd          # 胜利/失败结算
+  shaders/                      # Shader
+    mud_ground.gdshader         # 6层FBM泥地
+    grass.gdshader              # (已废弃)
 
 maps/                           # Godot 场景文件
-  MainMenu.tscn                 # 主菜单场景
-  GameWorld.tscn                # 核心战斗场景
-  ShopOverlay.tscn              # 商店覆盖层场景
-  LobbyMap.tscn                 # 联机等待大厅（预留）
+  main_menu.tscn                # 主菜单场景
+  lobby.tscn                    # 联机大厅场景
+  character_select.tscn         # 角色选择场景
+  game_world.tscn               # 核心战斗场景
+  shop_overlay.tscn             # 商店覆盖层(左商店右背包)
+  perk_select_overlay.tscn      # 波次结束Perk选择
+  results_overlay.tscn          # 结算界面
 
-assets/                         # 资产文件夹（程序化生成，无外部素材）
-
-data/                           # CSV 配置数据
-  enemies.csv                   # 敌人配置
-  weapons.csv                   # 武器配置
-  items.csv                     # 道具配置
-  waves.csv                     # 波次配置
+data/                           # JSON 配置数据
+  enemies.json                  # 21小怪 + 11 Boss
+  weapons.json                  # 50+ 武器（8生态系×3 tier + melee_type）
+  items.json                    # 25 道具
+  waves.json                    # 20 波
+  characters.json               # 13 角色(独特皮肤+差异化机制)
+  perks.json                    # 26 Perk
 
 docs/                           # 设计文档
-  01-project-structure.txt      # 项目结构
-  02-data-structures.txt        # 数据结构协议
-  03-game-flow.txt              # 游戏流程图
-  04-architecture.txt           # 架构设计
-  05-run-structure.txt          # 运行时结构图
+  01-project-structure.txt
+  02-data-structures.txt
+  03-game-flow.txt
+  04-architecture.txt
+  05-run-structure.txt

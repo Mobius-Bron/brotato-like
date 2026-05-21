@@ -54,6 +54,24 @@ func _random_edge_position() -> Vector2:
 		3: return Vector2(max_x + 20.0, randf_range(min_y, max_y))
 	return Vector2.ZERO
 
+func random_map_position(player_pos: Vector2) -> Vector2:
+	var wall = MapConfig.WALL_THICKNESS
+	var margin = MapConfig.SPAWN_MARGIN
+	var min_x = wall + margin
+	var max_x = _map_size.x - wall - margin
+	var min_y = wall + margin
+	var max_y = _map_size.y - wall - margin
+
+	var min_dist_from_player: float = 350.0
+	var dist_sq_min = min_dist_from_player * min_dist_from_player
+
+	for attempt in range(20):
+		var pos = Vector2(randf_range(min_x, max_x), randf_range(min_y, max_y))
+		if pos.distance_squared_to(player_pos) >= dist_sq_min:
+			return pos
+
+	return Vector2(randf_range(min_x, max_x), randf_range(min_y, max_y))
+
 func _hex_to_color(hex: String) -> Color:
 	if hex.length() < 6:
 		return Color.WHITE

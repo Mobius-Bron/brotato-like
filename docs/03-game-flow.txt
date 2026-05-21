@@ -7,64 +7,63 @@
 └──────┬───────┘
        ▼
 ┌──────────────┐
-│  主菜单界面   │  ← MainMenu.tscn
-│  [开始游戏]   │
-└──────┬───────┘
-       │ 点击开始
+│  主菜单界面   │
+│ [单人模式]    │ → GameManager.reset() → CHAR_SELECT
+│ [联机模式]    │ → GameManager.reset() → LOBBY
+│ [退出游戏]    │
+└──────────────┘
+
+联机模式 ──→ LOBBY (lobby.tscn)
+               ├── [创建主机] → ENetServer port 9876
+               ├── [加入游戏] → 输入IP → ENetClient连接
+               └── 连接成功后 → CHAR_SELECT
+
+┌──────────────┐
+│  角色选择     │  ← character_select.tscn
+│  13角色卡片   │
+│  点击选择角色 │  → GameManager.apply_character(id)
+└──────┬───────┘  → start_game() → PLAYING
        ▼
 ┌──────────────┐
-│  战斗场景     │  ← GameWorld.tscn
+│  战斗场景     │  ← game_world.tscn
 │  波次 N=1    │
 └──────┬───────┘
-       │ 初始化波次
        ▼
 ┌──────────────┐
 │  波次进行中   │
-│  生成敌人 →   │  SpawnSystem 按波次配置生成
-│  玩家走位 →   │  MovementSystem 处理输入
-│  自动攻击 →   │  WeaponSystem 自动瞄准+射击
-│  击杀敌人 →   │  HealthSystem 处理死亡，掉落金币/经验
+│  持续出怪     │  SpawnSystem: 全图随机（离玩家350px+）
+│  玩家走位     │  MovementSystem + 敌人互相避让
+│  自动攻击     │  WeaponSystem: 暴击/吸血/穿透/近战动画
+│  击杀敌人     │  HealthSystem: 掉落金币+经验球(diamond)
+│  拾取经验球   │  game_world._collect_xp_orbs(pickup_radius)
 │  倒计时结束   │
 └──────┬───────┘
        │
-       ├─── 每 5 波 ───→ Boss 波次
+       ├─── 每 5 波 Boss ───→ 随机Boss (11种循环)
        │
        ▼
 ┌──────────────┐
-│  波次结束     │  判断结果
+│  波次结束     │
 └──────┬───────┘
        │
-       ├─── 玩家死亡 ──→ 游戏结束 → 返回主菜单
+       ├─── 有 pending_levels ──→ PerkSelect(3选1) → perks_done
        │
-       ├─── N == 30  ──→ 胜利 → 返回主菜单
+       ├─── 联机: 复活死亡玩家(半血) ──→
        │
-       └─── 其他 ──→ 商店界面 ShopOverlay.tscn
-                        │
-                        ├── 购买道具（4个随机道具）
-                        ├── 购买武器（3个随机武器）
-                        ├── 回复生命
-                        └── 下一波
-                              │
-                              ▼
-                        N += 1，回到战斗
+       ├─── N == 20  ──→ ResultsOverlay (胜利)
+       │
+       └─── 商店 shop_overlay
+                ├── 左: 道具+武器购买+刷新
+                ├── 右: 背包(ScrollContainer)+▲▼交换+合成+出售
+                └── 右下: 金币+下一波
 
+游戏状态机:
+  MENU → CHAR_SELECT/LOBBY → PLAYING → SHOP → PLAYING → ...
+  PLAYING → PERK_SELECT → SHOP → PLAYING → ...
+  → WIN/LOSE → MENU
 
-四、游戏状态机
-
-  MENU → PLAYING → SHOP → PLAYING → ... → WIN/LOSE → MENU
-
-  状态说明:
-    MENU:      主菜单
-    PLAYING:   战斗中（波次进行中）
-    SHOP:      商店界面
-    WIN:       通关
-    LOSE:      失败
-
-
-五、波次规则
-
-  - 共 30 波
-  - 每 5 波随机出现一个 Boss（第 5, 10, 15, 20, 25, 30 波）
-  - 普通波次持续 30 秒
-  - Boss 波次持续 60 秒（或击杀 Boss 后结束）
-  - 波次难度逐渐递增（敌人数量和属性增长）
+联机规则:
+  - Host 运行完整 ECS 模拟
+  - 客户端发送输入，Host 回复状态
+  - 死亡不立即结束，全员死亡才GameOver
+  - 波次结束自动半血复活死亡玩家(2秒无敌)
