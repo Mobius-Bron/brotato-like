@@ -5,6 +5,9 @@ var _current_perks: Array = []
 func _ready() -> void:
 	hide()
 	EventBus.on("show_perks", _on_show_perks)
+	$Panel/VBoxContainer/PerkButton1.pressed.connect(_on_perk_0)
+	$Panel/VBoxContainer/PerkButton2.pressed.connect(_on_perk_1)
+	$Panel/VBoxContainer/PerkButton3.pressed.connect(_on_perk_2)
 
 func _exit_tree() -> void:
 	EventBus.off("show_perks", _on_show_perks)
@@ -29,7 +32,11 @@ func _on_show_perks(_data = null) -> void:
 	GameManager.set_state(GameManager.State.PERK_SELECT)
 	show()
 
-func _on_perk_selected(index: int) -> void:
+func _on_perk_0() -> void: _apply_perk(0)
+func _on_perk_1() -> void: _apply_perk(1)
+func _on_perk_2() -> void: _apply_perk(2)
+
+func _apply_perk(index: int) -> void:
 	if index >= _current_perks.size():
 		return
 	var perk = _current_perks[index]

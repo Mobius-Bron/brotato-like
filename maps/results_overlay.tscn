@@ -9,6 +9,7 @@ script = ExtResource("1_script")
 offset_right = 3000.0
 offset_bottom = 3000.0
 color = Color(0, 0, 0, 0.75)
+mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="." unique_id=1073508865]
 anchors_preset = 8

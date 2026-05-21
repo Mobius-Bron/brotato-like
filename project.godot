@@ -25,7 +25,6 @@ SettingsManager="*res://core/global/settings_manager.gd"
 GameManager="*res://core/managers/game_manager.gd"
 EventBus="*res://core/managers/event_bus.gd"
 ConfigLoader="*res://core/managers/config_loader.gd"
-MultiplayerManager="*res://core/managers/multiplayer_manager.gd"
 
 [display]
 

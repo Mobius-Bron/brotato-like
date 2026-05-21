@@ -10,6 +10,7 @@ layout_mode = 0
 offset_right = 3000.0
 offset_bottom = 3000.0
 color = Color(0, 0, 0, 0.5)
+mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
@@ -58,7 +59,3 @@ layout_mode = 2
 text = ""
 custom_minimum_size = Vector2(0, 48)
 theme_override_font_sizes/font_size = 14
-
-[connection signal="pressed" from="Panel/VBoxContainer/PerkButton1" to="." method="_on_perk_selected" binds= [0]]
-[connection signal="pressed" from="Panel/VBoxContainer/PerkButton2" to="." method="_on_perk_selected" binds= [1]]
-[connection signal="pressed" from="Panel/VBoxContainer/PerkButton3" to="." method="_on_perk_selected" binds= [2]]

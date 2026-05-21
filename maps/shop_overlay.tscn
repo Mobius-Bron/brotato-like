@@ -10,6 +10,7 @@ layout_mode = 0
 offset_right = 3000.0
 offset_bottom = 3000.0
 color = Color(0, 0, 0, 0.6)
+mouse_filter = 2
 
 [node name="ShopPanel" type="Panel" parent="."]
 layout_mode = 1
