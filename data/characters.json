@@ -123,7 +123,7 @@
     "id": "lucky",
     "name": "幸运星",
     "desc": "吉星高照。6武器槽。幸运+25，暴击率+15%。金币翻倍。攻击力为0。",
-    "starting_weapons": ["wand"],
+    "starting_weapons": ["wand", "wand", "wand"],
     "weapon_slots": 6,
     "weapon_damage_mult": 1.0,
     "weapon_range_mult": 1.0,
@@ -142,9 +142,9 @@
   {
     "id": "generalist",
     "name": "多面手",
-    "desc": "武器大师。8武器槽！但每把武器伤害x0.6。属性均衡偏低。",
+    "desc": "武器大师。12武器槽！但每把武器伤害x0.6。属性均衡偏低。",
     "starting_weapons": ["pistol", "pistol", "pistol"],
-    "weapon_slots": 8,
+    "weapon_slots": 12,
     "weapon_damage_mult": 0.6,
     "weapon_range_mult": 1.0,
     "stat_modifiers": {"max_hp": 8, "speed": 8, "attack_speed": 0.10, "damage": -2, "pickup_radius": 30}
@@ -152,11 +152,11 @@
   {
     "id": "swordsman",
     "name": "剑圣",
-    "desc": "剑道极致。3武器槽，近战伤害+60%。只使用剑类。",
+    "desc": "剑道极致。4武器槽，近战伤害+60%。只使用剑类。",
     "starting_weapons": ["sword"],
-    "weapon_slots": 3,
+    "weapon_slots": 4,
     "weapon_damage_mult": 1.6,
     "weapon_range_mult": 1.0,
-    "stat_modifiers": {"damage": 8, "attack_speed": 0.22, "crit_chance": 0.10, "speed": 15, "max_hp": -5, "range": -70}
+    "stat_modifiers": {"damage": 8, "attack_speed": 0.62, "crit_chance": 0.10, "speed": 15, "max_hp": -5, "range": -10}
   }
 ]

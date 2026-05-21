@@ -152,10 +152,11 @@ func apply_perk(perk_id: String) -> void:
 				stat_bonuses[key] += val
 	pending_levels -= 1
 
-func add_weapon(weapon_id: String) -> void:
+func add_weapon(weapon_id: String) -> bool:
 	if owned_weapons.size() >= weapon_slots:
-		return
+		return false
 	owned_weapons.append(weapon_id)
+	return true
 
 func get_weapon_slots() -> int:
 	return weapon_slots
@@ -219,7 +220,10 @@ func try_merge_weapons(weapon_id: String) -> String:
 
 	remove_weapon(weapon_id)
 	remove_weapon(weapon_id)
-	add_weapon(upgrade)
+	if not add_weapon(upgrade):
+		add_weapon(weapon_id)
+		add_weapon(weapon_id)
+		return ""
 	return upgrade
 
 func _get_base_id(weapon_id: String) -> String:

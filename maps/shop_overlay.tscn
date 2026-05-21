@@ -18,10 +18,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -420.0
-offset_top = -260.0
-offset_right = 420.0
-offset_bottom = 260.0
+offset_left = -550.0
+offset_top = -265.0
+offset_right = 550.0
+offset_bottom = 265.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -29,85 +29,115 @@ grow_vertical = 2
 layout_mode = 0
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 840.0
-offset_bottom = 520.0
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 14
+offset_right = 1100.0
+offset_bottom = 530.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ShopPanel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
-[node name="ShopLeft" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer"]
+[node name="StatsColumn" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(190, 0)
+theme_override_constants/separation = 4
+
+[node name="StatsTitle" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/StatsColumn"]
+layout_mode = 2
+text = "属性"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="StatsScroll" type="ScrollContainer" parent="ShopPanel/MarginContainer/HBoxContainer/StatsColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatsContainer" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/StatsColumn/StatsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 1
 
-[node name="TitleLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/ShopLeft"]
+[node name="CenterColumn" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn"]
 layout_mode = 2
 text = "商店"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 26
 
-[node name="ItemLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/ShopLeft"]
+[node name="ItemLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn"]
 layout_mode = 2
 text = "道具:"
 theme_override_font_sizes/font_size = 15
 
-[node name="ItemContainer" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/ShopLeft"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="WeaponLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/ShopLeft"]
-layout_mode = 2
-text = "武器:"
-theme_override_font_sizes/font_size = 15
-
-[node name="WeaponContainer" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/ShopLeft"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="RefreshButton" type="Button" parent="ShopPanel/MarginContainer/HBoxContainer/ShopLeft"]
-layout_mode = 2
-text = "刷新商品 (5G)"
-custom_minimum_size = Vector2(0, 36)
-
-[node name="ShopRight" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(320, 0)
-theme_override_constants/separation = 6
-
-[node name="InventoryLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/ShopRight"]
-layout_mode = 2
-text = "背包:"
-theme_override_font_sizes/font_size = 15
-
-[node name="InventoryScroll" type="ScrollContainer" parent="ShopPanel/MarginContainer/HBoxContainer/ShopRight"]
+[node name="ItemScroll" type="ScrollContainer" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn"]
 layout_mode = 2
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 320)
 
-[node name="InventoryContainer" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/ShopRight/InventoryScroll"]
+[node name="ItemContainer" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn/ItemScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="BottomRow" type="HBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/ShopRight"]
+[node name="WeaponLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn"]
+layout_mode = 2
+text = "武器:"
+theme_override_font_sizes/font_size = 15
+
+[node name="WeaponScroll" type="ScrollContainer" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WeaponContainer" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn/WeaponScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="RefreshButton" type="Button" parent="ShopPanel/MarginContainer/HBoxContainer/CenterColumn"]
+layout_mode = 2
+text = "刷新商品 (5G)"
+custom_minimum_size = Vector2(0, 34)
+
+[node name="RightColumn" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(320, 0)
+theme_override_constants/separation = 6
+
+[node name="InventoryLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/RightColumn"]
+layout_mode = 2
+text = "背包:"
+theme_override_font_sizes/font_size = 15
+
+[node name="InventoryScroll" type="ScrollContainer" parent="ShopPanel/MarginContainer/HBoxContainer/RightColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 320)
+
+[node name="InventoryContainer" type="VBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/RightColumn/InventoryScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="BottomRow" type="HBoxContainer" parent="ShopPanel/MarginContainer/HBoxContainer/RightColumn"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="CoinLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/ShopRight/BottomRow"]
+[node name="CoinLabel" type="Label" parent="ShopPanel/MarginContainer/HBoxContainer/RightColumn/BottomRow"]
 layout_mode = 2
 text = "金币: 0"
 horizontal_alignment = 1
 size_flags_horizontal = 3
 
-[node name="NextWaveButton" type="Button" parent="ShopPanel/MarginContainer/HBoxContainer/ShopRight/BottomRow"]
+[node name="NextWaveButton" type="Button" parent="ShopPanel/MarginContainer/HBoxContainer/RightColumn/BottomRow"]
 layout_mode = 2
 text = "下一波"
 custom_minimum_size = Vector2(110, 36)
 
-[connection signal="pressed" from="ShopPanel/MarginContainer/HBoxContainer/ShopLeft/RefreshButton" to="." method="_on_refresh_pressed"]
-[connection signal="pressed" from="ShopPanel/MarginContainer/HBoxContainer/ShopRight/BottomRow/NextWaveButton" to="." method="_on_next_wave_pressed"]
+[connection signal="pressed" from="ShopPanel/MarginContainer/HBoxContainer/CenterColumn/RefreshButton" to="." method="_on_refresh_pressed"]
+[connection signal="pressed" from="ShopPanel/MarginContainer/HBoxContainer/RightColumn/BottomRow/NextWaveButton" to="." method="_on_next_wave_pressed"]

@@ -57,10 +57,13 @@ func create_enemy(enemy_id: String, position: Vector2 = Vector2.ZERO) -> int:
 
 func _get_wave_scale() -> Dictionary:
 	var w = float(_current_wave)
-	var hp_scale = 1.0 + (w - 1.0) * 0.1
-	var dmg_scale = 1.0 + (w - 1.0) * 0.06
-	var reward_scale = 1.0 + (w - 1.0) * 0.08
-	return {"hp": hp_scale, "damage": dmg_scale, "reward": reward_scale}
+	if w >= 6.0:
+		var hp_scale = pow(1.18, w - 1.0) * pow(1.08, w - 5.0)
+		var dmg_scale = pow(1.12, w - 1.0) * pow(1.06, w - 5.0)
+		var reward_scale = pow(1.10, w - 1.0) * pow(1.05, w - 5.0)
+		return {"hp": hp_scale, "damage": dmg_scale, "reward": reward_scale}
+	else:
+		return {"hp": pow(1.18, w - 1.0), "damage": pow(1.12, w - 1.0), "reward": pow(1.10, w - 1.0)}
 
 func _random_edge_position() -> Vector2:
 	var spawn_margin = MapConfig.SPAWN_MARGIN
@@ -108,10 +111,7 @@ func _make_enemy_sprite(cfg: Dictionary) -> Dictionary:
 	var shape: String = cfg["shape"]
 	var color: Color = _hex_to_color(cfg["color"])
 	var size: float = cfg["size"]
-	var dark = Color(color.r * 0.3, color.g * 0.3, color.b * 0.3, 1.0)
-	var bright = Color(min(color.r * 1.4, 1.0), min(color.g * 1.4, 1.0), min(color.b * 1.4, 1.0), 1.0)
 	var white = Color(1.0, 1.0, 1.0, 0.95)
-	var black = Color(0.0, 0.0, 0.0, 0.9)
 
 	match shape:
 		"rect":
@@ -119,39 +119,28 @@ func _make_enemy_sprite(cfg: Dictionary) -> Dictionary:
 				{"shape": "rect", "offset": Vector2.ZERO, "color": color, "size": size},
 				{"shape": "rect", "offset": Vector2(-size * 0.18, -size * 0.18), "color": white, "size": size * 0.28},
 				{"shape": "rect", "offset": Vector2(size * 0.18, -size * 0.18), "color": white, "size": size * 0.28},
-				{"shape": "rect", "offset": Vector2(-size * 0.18, -size * 0.16), "color": black, "size": size * 0.12},
-				{"shape": "rect", "offset": Vector2(size * 0.18, -size * 0.16), "color": black, "size": size * 0.12},
 			])
 		"triangle":
 			return _sprite_combo(size * 0.5, [
 				{"shape": "triangle", "offset": Vector2.ZERO, "color": color, "size": size},
-				{"shape": "circle", "offset": Vector2.ZERO, "color": white, "size": size * 0.45},
-				{"shape": "circle", "offset": Vector2.ZERO, "color": black, "size": size * 0.2},
+				{"shape": "circle", "offset": Vector2.ZERO, "color": white, "size": size * 0.4},
 			])
 		"diamond":
 			return _sprite_combo(size * 0.5, [
 				{"shape": "diamond", "offset": Vector2.ZERO, "color": color, "size": size},
 				{"shape": "rect", "offset": Vector2(-size * 0.15, -size * 0.08), "color": white, "size": size * 0.3},
 				{"shape": "rect", "offset": Vector2(size * 0.15, -size * 0.08), "color": white, "size": size * 0.3},
-				{"shape": "rect", "offset": Vector2(-size * 0.15, -size * 0.06), "color": black, "size": size * 0.12},
-				{"shape": "rect", "offset": Vector2(size * 0.15, -size * 0.06), "color": black, "size": size * 0.12},
 			])
 		"hexagon":
 			return _sprite_combo(size * 0.55, [
 				{"shape": "hexagon", "offset": Vector2.ZERO, "color": color, "size": size},
-				{"shape": "hexagon", "offset": Vector2.ZERO, "color": dark, "size": size * 0.75},
-				{"shape": "circle", "offset": Vector2.ZERO, "color": white, "size": size * 0.5},
-				{"shape": "circle", "offset": Vector2.ZERO, "color": black, "size": size * 0.22},
-				{"shape": "triangle", "offset": Vector2(-size * 0.35, -size * 0.2), "color": bright, "size": size * 0.35, "rotation": -PI / 2.0},
-				{"shape": "triangle", "offset": Vector2(size * 0.35, -size * 0.2), "color": bright, "size": size * 0.35, "rotation": PI / 2.0},
+				{"shape": "circle", "offset": Vector2.ZERO, "color": white, "size": size * 0.45},
 			])
 		_:
 			return _sprite_combo(size * 0.55, [
 				{"shape": "circle", "offset": Vector2.ZERO, "color": color, "size": size},
 				{"shape": "circle", "offset": Vector2(-size * 0.18, -size * 0.15), "color": white, "size": size * 0.3},
 				{"shape": "circle", "offset": Vector2(size * 0.18, -size * 0.15), "color": white, "size": size * 0.3},
-				{"shape": "circle", "offset": Vector2(-size * 0.18, -size * 0.13), "color": black, "size": size * 0.14},
-				{"shape": "circle", "offset": Vector2(size * 0.18, -size * 0.13), "color": black, "size": size * 0.14},
 			])
 
 func _sprite_combo(outline_r: float, subs: Array) -> Dictionary:
@@ -161,5 +150,6 @@ func _sprite_combo(outline_r: float, subs: Array) -> Dictionary:
 		"size": 1.0,
 		"rotation": 0.0,
 		"outline_radius": outline_r,
+		"height": 0.5,
 		"sub_sprites": subs
 	}

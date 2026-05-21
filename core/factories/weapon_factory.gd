@@ -21,7 +21,9 @@ static func create_weapon_component(weapon_id: String) -> Dictionary:
 		"melee": cfg.get("melee", false),
 		"melee_type": cfg.get("melee_type", "slash"),
 		"ecosystem": cfg.get("ecosystem", ""),
-		"element": cfg.get("element", "")
+		"element": cfg.get("element", ""),
+		"explosion": cfg.get("explosion", 0),
+		"explosion_damage": cfg.get("explosion_damage", 0),
 	}
 
 static func apply_stat_bonuses(weapon_data: Dictionary, bonuses: Dictionary) -> Dictionary:

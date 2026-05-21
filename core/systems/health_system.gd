@@ -41,13 +41,34 @@ func _update_regen(world: ECSWorld, delta: float) -> void:
 		var hp = world.healths[pid]
 		var regen = GameManager.stat_bonuses.get("hp_regen", 0)
 		if regen > 0:
-			hp["current_hp"] = min(hp["current_hp"] + int(regen * delta), hp["max_hp"])
+			var accum = hp.get("regen_accum", 0.0) + regen * delta
+			var heal_ticks = int(accum)
+			if heal_ticks > 0:
+				hp["current_hp"] = min(hp["current_hp"] + heal_ticks, hp["max_hp"])
+				hp["regen_accum"] = accum - heal_ticks
+			else:
+				hp["regen_accum"] = accum
 
 func _update_invincible(world: ECSWorld, delta: float) -> void:
 	for eid in world.healths:
 		var hp = world.healths[eid]
 		if hp["invincible_timer"] > 0:
 			hp["invincible_timer"] -= delta
+
+func apply_lifesteal(owner_id: int, damage: int, world: ECSWorld) -> void:
+	var ls = GameManager.stat_bonuses.get("life_steal", 0.0)
+	if ls <= 0.0:
+		return
+	if not world.healths.has(owner_id):
+		return
+	var hp = world.healths[owner_id]
+	var accum = hp.get("lifesteal_accum", 0.0) + damage * ls
+	var heal_ticks = int(accum)
+	if heal_ticks > 0:
+		hp["current_hp"] = min(hp["current_hp"] + heal_ticks, hp["max_hp"])
+		hp["lifesteal_accum"] = accum - heal_ticks
+	else:
+		hp["lifesteal_accum"] = accum
 
 func _process_dead(world: ECSWorld) -> void:
 	var to_destroy := []

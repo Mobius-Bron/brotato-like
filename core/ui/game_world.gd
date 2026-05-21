@@ -66,7 +66,7 @@ func _create_player(skin: Dictionary = {}) -> void:
 
 	var base_hp = 50 + GameManager.stat_bonuses.get("max_hp", 0)
 	_world.transforms[_player_id] = {"position": center}
-	_world.healths[_player_id] = {"current_hp": base_hp, "max_hp": base_hp, "invincible_time": 0.8, "invincible_timer": 0.0}
+	_world.healths[_player_id] = {"current_hp": base_hp, "max_hp": base_hp, "invincible_time": 0.5, "invincible_timer": 0.0, "regen_accum": 0.0, "lifesteal_accum": 0.0}
 	_world.movements[_player_id] = {"speed": 180 + GameManager.stat_bonuses.get("speed", 0), "direction": Vector2.ZERO, "is_player": true}
 	_world.collisions[_player_id] = {"radius": 14.0}
 
@@ -305,6 +305,13 @@ func _on_enemy_killed(data: Dictionary) -> void:
 	var xp_val = data.get("xp_drop", 5)
 	_create_xp_orb(pos, xp_val)
 
+	var ec = GameManager.stat_bonuses.get("explosion_chance", 0.0)
+	if ec > 0.0 and randf() < ec:
+		var es = GameManager.stat_bonuses.get("explosion_size", 0)
+		var radius = 80.0 + es * 30.0
+		var dmg = 10 + es * 5
+		_trigger_explosion(pos, radius, dmg)
+
 func _create_xp_orb(pos: Vector2, value: int) -> void:
 	var eid = _world.create_entity()
 	var spread = Vector2(randf_range(-15, 15), randf_range(-15, 15))
@@ -323,6 +330,43 @@ func _create_xp_orb(pos: Vector2, value: int) -> void:
 	}
 	_world.lifetimes[eid] = {"remaining_time": 45.0}
 	_world.xp_orbs[eid] = {"xp_value": value}
+
+func _trigger_explosion(pos: Vector2, radius: float, damage: int) -> void:
+	var radius_sq = radius * radius
+	for eid in _world.enemies:
+		if not _world.transforms.has(eid):
+			continue
+		var dist_sq = pos.distance_squared_to(_world.transforms[eid]["position"])
+		if dist_sq < radius_sq:
+			_health_system.deal_damage(eid, damage)
+
+	var frames := 8
+	var color = Color(1.0, 0.4, 0.0, 0.9)
+	for i in range(frames):
+		var t = i / float(frames - 1)
+		var s_eid = _world.create_entity()
+		_world.transforms[s_eid] = {"position": pos}
+		_world.sprites[s_eid] = {
+			"shape": "circle",
+			"color": Color(color.r, color.g, color.b, color.a * (1.0 - t)),
+			"size": radius * (0.3 + t * 1.4),
+			"rotation": 0.0,
+			"height": 0.8
+		}
+		_world.lifetimes[s_eid] = {"remaining_time": t * 0.15}
+	for i in range(6):
+		var s_eid = _world.create_entity()
+		var angle = i * TAU / 6.0 + randf() * 0.5
+		var dist = radius * 0.2
+		_world.transforms[s_eid] = {"position": pos + Vector2(cos(angle) * dist, sin(angle) * dist)}
+		_world.sprites[s_eid] = {
+			"shape": "circle",
+			"color": Color(1.0, 0.8, 0.2, 0.8),
+			"size": radius * (0.15 + randf() * 0.25),
+			"rotation": 0.0,
+			"height": 0.85
+		}
+		_world.lifetimes[s_eid] = {"remaining_time": 0.15 * (0.3 + randf() * 0.5)}
 
 func _on_player_died(_data = null) -> void:
 	_end_game(false)

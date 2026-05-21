@@ -15,8 +15,10 @@ func create_projectile(
 	shape: String,
 	color_hex: String,
 	owner_id: int,
-	lifetime: float = 3.0,
-	pierce: int = 0
+	lifetime: float = 1.5,
+	pierce: int = 0,
+	explosion_radius: float = 0.0,
+	explosion_damage: int = 0
 ) -> int:
 	var eid = _world.create_entity()
 
@@ -24,22 +26,23 @@ func create_projectile(
 	_world.movements[eid] = {"speed": speed, "direction": direction.normalized(), "is_player": false}
 	_world.collisions[eid] = {"radius": size * 0.5}
 	var col = _hex_to_color(color_hex)
-	var bright = Color(min(col.r * 1.5, 1.0), min(col.g * 1.5, 1.0), min(col.b * 1.5, 1.0), 1.0)
 	_world.sprites[eid] = {
-		"shape": "composite",
+		"shape": "circle",
 		"color": col,
 		"size": size,
-		"rotation": direction.angle(),
+		"rotation": 0.0,
 		"outline_radius": size * 0.55,
 		"height": 0.7,
-		"sub_sprites": [
-			{"shape": "circle", "offset": Vector2.ZERO, "color": Color(0.0, 0.0, 0.0, 0.6), "size": size + 2.0},
-			{"shape": "circle", "offset": Vector2.ZERO, "color": col, "size": size},
-			{"shape": "circle", "offset": Vector2.ZERO, "color": bright, "size": size * 0.4},
-		]
+		"sub_sprites": []
 	}
 	_world.lifetimes[eid] = {"remaining_time": lifetime}
-	_world.projectiles[eid] = {"owner_id": owner_id, "damage": damage, "pierce": pierce}
+	_world.projectiles[eid] = {
+		"owner_id": owner_id,
+		"damage": damage,
+		"pierce": pierce,
+		"explosion_radius": explosion_radius,
+		"explosion_damage": explosion_damage
+	}
 
 	return eid
 

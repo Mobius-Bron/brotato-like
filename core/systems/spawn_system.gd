@@ -5,11 +5,15 @@ var _enemy_factory: EnemyFactory
 var _wave_timer: float = 0.0
 var _spawn_timer: float = 0.0
 var _spawn_interval: float = 1.5
+var _spawn_mult: float = 1.0
 var _spawn_pool: Array = []
 var _total_weight: int = 0
 var _wave_active: bool = false
 var _current_wave: int = 0
+var _enemy_budget: int = 0
+var _enemy_spawned: int = 0
 
+const MAX_ENEMIES: int = 200
 const ELITE_IDS := [["elite_warrior", "elite_charger", "elite_marksman"], ["elite_golem", "elite_warlock"], ["elite_charger", "elite_golem", "elite_warlock"]]
 
 func _init(enemy_factory: EnemyFactory) -> void:
@@ -25,6 +29,19 @@ func start_wave(wave_number: int) -> void:
 	_spawn_timer = 0.0
 	_wave_active = true
 	_current_wave = wave_number
+	_enemy_spawned = 0
+
+	if _current_wave < 6:
+		_spawn_mult = 1.0
+	elif _current_wave < 11:
+		_spawn_mult = 2.0
+	elif _current_wave < 16:
+		_spawn_mult = 4.0
+	else:
+		_spawn_mult = 8.0
+
+	var total_spawns_est = int(_wave_timer / _spawn_interval * _spawn_mult)
+	_enemy_budget = min(total_spawns_est, MAX_ENEMIES)
 
 	_enemy_factory.set_wave(wave_number)
 	_parse_enemy_pool(cfg.get("enemy_groups", ""))
@@ -74,9 +91,9 @@ func _pick_elite() -> String:
 	return pool[randi() % pool.size()]
 
 func _get_scaled_interval() -> float:
-	var base = _spawn_interval
+	var base = _spawn_interval / _spawn_mult
 	var wave_factor = 1.0 - (_current_wave - 1) * 0.015
-	return maxf(base * wave_factor, 0.35)
+	return maxf(base * wave_factor, 0.08)
 
 func update(world: ECSWorld, delta: float) -> void:
 	if not _wave_active:
@@ -88,12 +105,19 @@ func update(world: ECSWorld, delta: float) -> void:
 		EventBus.emit("wave_cleared")
 		return
 
+	if world.enemies.size() >= MAX_ENEMIES:
+		return
+
 	_spawn_timer -= delta
 	if _spawn_timer <= 0:
-		var enemy_id = _pick_enemy()
-		var player_pos = world.player_position
-		var spawn_pos = _enemy_factory.random_map_position(player_pos)
-		_enemy_factory.create_enemy(enemy_id, spawn_pos)
+		var batch = min(int(_spawn_mult), 3)
+		for i in range(batch):
+			if world.enemies.size() >= MAX_ENEMIES:
+				break
+			var enemy_id = _pick_enemy()
+			var player_pos = world.player_position
+			var spawn_pos = _enemy_factory.random_map_position(player_pos)
+			_enemy_factory.create_enemy(enemy_id, spawn_pos)
 		_spawn_timer = _get_scaled_interval() * randf_range(0.7, 1.3)
 
 func is_wave_active() -> bool:

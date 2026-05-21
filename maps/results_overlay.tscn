@@ -1,18 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://results_overlay_001"]
+[gd_scene format=3 uid="uid://lomtykcwmgs3"]
 
-[ext_resource type="Script" path="res://core/ui/results_overlay.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dca0qlkl0rwgy" path="res://core/ui/results_overlay.gd" id="1_script"]
 
-[node name="ResultsOverlay" type="CanvasLayer"]
+[node name="ResultsOverlay" type="CanvasLayer" unique_id=1874193249]
 script = ExtResource("1_script")
 
-[node name="DarkOverlay" type="ColorRect" parent="."]
-layout_mode = 0
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=97734910]
 offset_right = 3000.0
 offset_bottom = 3000.0
 color = Color(0, 0, 0, 0.75)
 
-[node name="Panel" type="Panel" parent="."]
-layout_mode = 1
+[node name="Panel" type="Panel" parent="." unique_id=1073508865]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -25,7 +23,7 @@ offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=2020216062]
 layout_mode = 0
 offset_left = 30.0
 offset_top = 25.0
@@ -35,41 +33,41 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 14
 
-[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1475776032]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 36
 text = "阵亡"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 36
-theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 
-[node name="WaveLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="WaveLabel" type="Label" parent="Panel/VBoxContainer" unique_id=526070889]
 layout_mode = 2
+theme_override_font_sizes/font_size = 20
 text = "到达波次: 0"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
 
-[node name="CoinLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="CoinLabel" type="Label" parent="Panel/VBoxContainer" unique_id=6754867]
 layout_mode = 2
+theme_override_font_sizes/font_size = 20
 text = "金币: 0"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
 
-[node name="LevelLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="LevelLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1909560419]
 layout_mode = 2
+theme_override_font_sizes/font_size = 20
 text = "等级: 1"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
 
-[node name="KillLabel" type="Label" parent="Panel/VBoxContainer"]
+[node name="KillLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1287565083]
 layout_mode = 2
+theme_override_font_sizes/font_size = 20
 text = "击杀: 0"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
 
-[node name="ReturnButton" type="Button" parent="Panel/VBoxContainer"]
-layout_mode = 2
-text = "返回主菜单"
+[node name="ReturnButton" type="Button" parent="Panel/VBoxContainer" unique_id=457763508]
 custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
 theme_override_font_sizes/font_size = 22
+text = "返回主菜单"
 
 [connection signal="pressed" from="Panel/VBoxContainer/ReturnButton" to="." method="_on_return_pressed"]

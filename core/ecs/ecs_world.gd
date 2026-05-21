@@ -2,6 +2,7 @@ class_name ECSWorld
 extends RefCounted
 
 var _next_id := 0
+var _free_ids: Array = []
 var _alive_entities := {}
 var _systems: Array = []
 
@@ -17,13 +18,17 @@ var players := {}
 var enemies := {}
 var projectiles := {}
 var weapon_entities := {}
-var xp_orbs := {} 
+var xp_orbs := {}
 
 var player_position := Vector2.ZERO
 
 func create_entity() -> int:
-	var id = _next_id
-	_next_id += 1
+	var id: int
+	if _free_ids.size() > 0:
+		id = _free_ids.pop_back()
+	else:
+		id = _next_id
+		_next_id += 1
 	_alive_entities[id] = true
 	return id
 
@@ -41,9 +46,13 @@ func destroy_entity(id: int) -> void:
 	projectiles.erase(id)
 	weapon_entities.erase(id)
 	xp_orbs.erase(id)
+	_free_ids.append(id)
 
 func is_alive(id: int) -> bool:
 	return _alive_entities.has(id)
+
+func alive_count() -> int:
+	return _alive_entities.size()
 
 func add_system(system) -> void:
 	_systems.append(system)

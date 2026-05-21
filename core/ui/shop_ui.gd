@@ -2,10 +2,14 @@ extends CanvasLayer
 
 var _shop_items: Array = []
 var _shop_weapons: Array = []
-@onready var _inventory_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/ShopRight/InventoryScroll/InventoryContainer
-@onready var _item_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/ShopLeft/ItemContainer
-@onready var _weapon_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/ShopLeft/WeaponContainer
-@onready var _coin_label: Label = $ShopPanel/MarginContainer/HBoxContainer/ShopRight/BottomRow/CoinLabel
+var _refresh_cost: int = 0
+var _refresh_count: int = 0
+@onready var _stats_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/StatsColumn/StatsScroll/StatsContainer
+@onready var _item_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/CenterColumn/ItemScroll/ItemContainer
+@onready var _weapon_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/CenterColumn/WeaponScroll/WeaponContainer
+@onready var _inventory_container: VBoxContainer = $ShopPanel/MarginContainer/HBoxContainer/RightColumn/InventoryScroll/InventoryContainer
+@onready var _coin_label: Label = $ShopPanel/MarginContainer/HBoxContainer/RightColumn/BottomRow/CoinLabel
+@onready var _refresh_btn: Button = $ShopPanel/MarginContainer/HBoxContainer/CenterColumn/RefreshButton
 
 func _ready() -> void:
 	hide()
@@ -16,17 +20,28 @@ func _exit_tree() -> void:
 
 func _on_show_shop(_data = null) -> void:
 	await get_tree().create_timer(0.5).timeout
+	if _refresh_cost == 0:
+		_refresh_cost = 5
+	_refresh_count = 0
 	generate_shop()
 	show()
+
+func _get_wave_price_mult() -> float:
+	return 1.0 + (GameManager.current_wave - 1) * 0.08
 
 func generate_shop() -> void:
 	_shop_items.clear()
 	_shop_weapons.clear()
 
+	var wave_mult = _get_wave_price_mult()
+	var inflate = _refresh_count * 5
+
 	var all_items = ConfigLoader.items.duplicate()
 	all_items.shuffle()
 	for i in range(min(5, all_items.size())):
-		_shop_items.append(all_items[i])
+		var item = all_items[i].duplicate()
+		item["price"] = max(1, int(item["price"] * wave_mult) + inflate)
+		_shop_items.append(item)
 
 	var all_weapons = ConfigLoader.weapons.duplicate()
 	all_weapons = all_weapons.filter(func(w):
@@ -35,29 +50,137 @@ func generate_shop() -> void:
 	)
 	all_weapons.shuffle()
 	for i in range(min(4, all_weapons.size())):
-		_shop_weapons.append(all_weapons[i])
+		var wpn = all_weapons[i].duplicate()
+		wpn["price"] = max(1, int(wpn["price"] * wave_mult) + inflate)
+		_shop_weapons.append(wpn)
 
 	_coin_label.text = "金币: %d" % GameManager.coins
 	_update_display()
 
 func refresh_shop() -> void:
-	if GameManager.coins < 5:
+	if GameManager.coins < _refresh_cost:
 		return
-	GameManager.coins -= 5
+	GameManager.coins -= _refresh_cost
+	_refresh_cost += 5
+	_refresh_count += 1
 	EventBus.emit("coins_changed", GameManager.coins)
 	generate_shop()
 
 func _update_display() -> void:
-	for child in _inventory_container.get_children():
+	for child in _stats_container.get_children():
 		child.queue_free()
 	for child in _item_container.get_children():
 		child.queue_free()
 	for child in _weapon_container.get_children():
 		child.queue_free()
+	for child in _inventory_container.get_children():
+		child.queue_free()
 
+	_refresh_btn.text = "刷新商品 (%dG)" % _refresh_cost
+	_refresh_btn.disabled = GameManager.coins < _refresh_cost
+
+	_update_stats()
 	_update_inventory()
 	_update_shop_items()
 	_update_shop_weapons()
+
+func _update_stats() -> void:
+	var sb = GameManager.stat_bonuses
+	var lines := [
+		{"label": "生命", "val": sb["max_hp"], "suffix": ""},
+		{"label": "回复", "val": sb["hp_regen"], "suffix": "/s"},
+		{"label": "速度", "val": sb["speed"], "suffix": ""},
+		{"label": "攻击", "val": sb["damage"], "suffix": ""},
+		{"label": "伤害%", "val": sb["damage_percent"], "suffix": "%", "is_pct": true},
+		{"label": "攻速", "val": sb["attack_speed"], "suffix": "%", "is_pct": true},
+		{"label": "暴击", "val": sb["crit_chance"], "suffix": "%", "is_pct": true},
+		{"label": "暴伤", "val": sb["crit_damage"], "suffix": "%", "is_pct": true},
+		{"label": "护甲", "val": sb["armor"], "suffix": ""},
+		{"label": "闪避", "val": sb["dodge_chance"], "suffix": "%", "is_pct": true},
+		{"label": "射程", "val": sb["range"], "suffix": ""},
+		{"label": "幸运", "val": sb["luck"], "suffix": ""},
+		{"label": "经验", "val": sb["xp_gain"], "suffix": "%", "is_pct": true},
+		{"label": "金币", "val": sb["coin_gain"], "suffix": "%", "is_pct": true},
+		{"label": "拾取", "val": sb["pickup_radius"], "suffix": ""},
+		{"label": "击退", "val": sb["knockback"], "suffix": "%", "is_pct": true},
+		{"label": "穿透", "val": sb["pierce"], "suffix": ""},
+		{"label": "吸血", "val": sb["life_steal"], "suffix": "%", "is_pct": true},
+		{"label": "爆炸率", "val": sb["explosion_chance"], "suffix": "%", "is_pct": true},
+		{"label": "爆炸范围", "val": sb["explosion_size"], "suffix": ""},
+	]
+
+	for line in lines:
+		var hbox = HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 6)
+
+		var name_lbl = Label.new()
+		name_lbl.text = line["label"]
+		name_lbl.add_theme_font_size_override("font_size", 12)
+		name_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1))
+		name_lbl.custom_minimum_size = Vector2(70, 0)
+		hbox.add_child(name_lbl)
+
+		var val_lbl = Label.new()
+		var val = line["val"]
+		var is_pct: bool = line.get("is_pct", false)
+		if is_pct:
+			val_lbl.text = "%+.0f%s" % [val * 100.0, line["suffix"]]
+		elif typeof(val) == TYPE_FLOAT:
+			val_lbl.text = "%+.1f%s" % [val, line["suffix"]]
+		else:
+			val_lbl.text = "%+d%s" % [int(val), line["suffix"]]
+		val_lbl.add_theme_font_size_override("font_size", 12)
+		if (typeof(val) == TYPE_FLOAT and val > 0.001) or (typeof(val) == TYPE_INT and val > 0):
+			val_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4, 1))
+		elif (typeof(val) == TYPE_FLOAT and val < -0.001) or (typeof(val) == TYPE_INT and val < 0):
+			val_lbl.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1))
+		else:
+			val_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1))
+		val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		val_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.add_child(val_lbl)
+
+		_stats_container.add_child(hbox)
+
+	var sep = HSeparator.new()
+	sep.custom_minimum_size = Vector2(0, 4)
+	_stats_container.add_child(sep)
+
+	var slot_hbox = HBoxContainer.new()
+	slot_hbox.add_theme_constant_override("separation", 6)
+	var slot_name = Label.new()
+	slot_name.text = "槽位"
+	slot_name.add_theme_font_size_override("font_size", 12)
+	slot_name.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1))
+	slot_name.custom_minimum_size = Vector2(70, 0)
+	slot_hbox.add_child(slot_name)
+	var slot_val = Label.new()
+	slot_val.text = "%d" % GameManager.get_weapon_slots()
+	slot_val.add_theme_font_size_override("font_size", 12)
+	slot_val.add_theme_color_override("font_color", Color(0.9, 0.7, 0.2, 1))
+	slot_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	slot_val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot_hbox.add_child(slot_val)
+	_stats_container.add_child(slot_hbox)
+
+	var dmg_mult = GameManager.weapon_slot_damage_mult()
+	if dmg_mult != 1.0:
+		var dm_hbox = HBoxContainer.new()
+		dm_hbox.add_theme_constant_override("separation", 6)
+		var dm_name = Label.new()
+		dm_name.text = "武器倍率"
+		dm_name.add_theme_font_size_override("font_size", 12)
+		dm_name.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1))
+		dm_name.custom_minimum_size = Vector2(70, 0)
+		dm_hbox.add_child(dm_name)
+		var dm_val = Label.new()
+		dm_val.text = "x%.1f" % dmg_mult
+		dm_val.add_theme_font_size_override("font_size", 12)
+		dm_val.add_theme_color_override("font_color", Color(1.0, 0.5, 0.3, 1))
+		dm_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		dm_val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		dm_hbox.add_child(dm_val)
+		_stats_container.add_child(dm_hbox)
 
 func _update_inventory() -> void:
 	var weapons = GameManager.owned_weapons.duplicate()
@@ -149,7 +272,7 @@ func _update_shop_weapons() -> void:
 	for i in range(_shop_weapons.size()):
 		var wpn = _shop_weapons[i]
 		var btn = Button.new()
-		var full = GameManager.owned_weapons.size() >= 6
+		var full = GameManager.owned_weapons.size() >= GameManager.get_weapon_slots()
 		var eco = wpn.get("ecosystem", "weapon")
 		btn.text = "[%s] %s (%dG)%s" % [eco, wpn["name"], wpn["price"], " [已满]" if full else ""]
 		btn.custom_minimum_size = Vector2(0, 40)
@@ -176,10 +299,9 @@ func _on_buy_weapon(index: int) -> void:
 	var wpn = _shop_weapons[index]
 	if GameManager.coins < wpn["price"]:
 		return
-	if GameManager.owned_weapons.size() >= 6:
+	if not GameManager.add_weapon(wpn["id"]):
 		return
 	GameManager.coins -= wpn["price"]
-	GameManager.add_weapon(wpn["id"])
 	_shop_weapons.remove_at(index)
 	EventBus.emit("coins_changed", GameManager.coins)
 	_coin_label.text = "金币: %d" % GameManager.coins
@@ -194,7 +316,6 @@ func _on_sell_weapon(weapon_id: String) -> void:
 func _on_merge_weapons(weapon_id: String) -> void:
 	var result = GameManager.try_merge_weapons(weapon_id)
 	if result != "":
-		var cfg = ConfigLoader.get_weapon(result)
 		_update_display()
 
 func _on_swap_weapons(idx_a: int, idx_b: int) -> void:

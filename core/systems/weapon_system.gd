@@ -3,6 +3,7 @@ extends RefCounted
 
 var _projectile_factory: ProjectileFactory
 var _health_system: HealthSystem
+var _boss_phases: Dictionary = {}
 
 func _init(projectile_factory: ProjectileFactory, health_system: HealthSystem) -> void:
 	_projectile_factory = projectile_factory
@@ -40,10 +41,68 @@ func _process_enemy_weapons(world: ECSWorld, delta: float) -> void:
 
 		if weapon["cooldown_remaining"] <= 0:
 			weapon["cooldown_remaining"] = weapon["base_cooldown"]
-			for pid in world.players:
-				if world.transforms.has(pid):
-					_shoot(world, eid, weapon, pid, eid)
-					break
+			var is_boss = world.enemies[eid].get("is_boss", false)
+			if is_boss:
+				_boss_shoot(world, eid, weapon)
+			else:
+				for pid in world.players:
+					if world.transforms.has(pid):
+						_shoot(world, eid, weapon, pid, eid)
+						break
+
+func _boss_shoot(world: ECSWorld, boss_id: int, weapon: Dictionary) -> void:
+	var src_pos = world.transforms[boss_id]["position"]
+	var player_pos = world.player_position
+	var base_dir = (player_pos - src_pos).normalized()
+
+	var phase = _boss_phases.get(boss_id, 0)
+	_boss_phases[boss_id] = (phase + 1) % 4
+
+	var count = weapon["bullet_count"]
+	var spread = weapon["spread"]
+
+	match phase:
+		0:
+			_radial_burst(world, boss_id, weapon, src_pos, count + 5)
+		1:
+			_aimed_spread(world, boss_id, weapon, src_pos, base_dir, count + 3, spread + 10)
+		2:
+			var dirs := [
+				base_dir, base_dir.rotated(PI * 0.12), base_dir.rotated(-PI * 0.12),
+				base_dir.rotated(PI * 0.25), base_dir.rotated(-PI * 0.25),
+			]
+			for i in range(min(dirs.size(), count + 4)):
+				_shoot_at(world, boss_id, weapon, src_pos, dirs[i])
+		3:
+			var half_count = ceili((count + 6) / 2.0)
+			for i in range(half_count):
+				var a = TAU * i / half_count
+				_shoot_at(world, boss_id, weapon, src_pos, Vector2(cos(a), sin(a)))
+			for i in range(half_count):
+				var a = TAU * i / half_count + PI / half_count
+				_shoot_at(world, boss_id, weapon, src_pos, Vector2(cos(a), sin(a)))
+
+func _radial_burst(world: ECSWorld, owner_id: int, weapon: Dictionary, pos: Vector2, count: int) -> void:
+	for i in range(4):
+		var a = TAU * i / 4.0 + randf() * 0.3
+		var dir = Vector2(cos(a), sin(a))
+		_shoot_at(world, owner_id, weapon, pos, dir)
+
+func _aimed_spread(world: ECSWorld, owner_id: int, weapon: Dictionary, pos: Vector2, base_dir: Vector2, count: int, deg: float) -> void:
+	var half = deg_to_rad(deg) * (count - 1) / 2.0
+	for i in range(count):
+		var offset = -half + deg_to_rad(deg) * i
+		_shoot_at(world, owner_id, weapon, pos, base_dir.rotated(offset))
+
+func _shoot_at(world: ECSWorld, owner_id: int, weapon: Dictionary, pos: Vector2, dir: Vector2) -> void:
+	if world.projectiles.size() >= 120:
+		return
+	var damage = weapon["damage"]
+	_projectile_factory.create_projectile(
+		pos, dir, damage, weapon["bullet_speed"],
+		weapon["bullet_size"], weapon["bullet_shape"], weapon["bullet_color"],
+		owner_id, 3.0, 0, weapon.get("explosion", 0), weapon.get("explosion_damage", 0)
+	)
 
 func _find_nearest_enemy(world: ECSWorld, weid: int, weapon: Dictionary) -> int:
 	var weapon_pos: Vector2 = world.transforms[weid]["position"]
@@ -162,22 +221,19 @@ func _apply_crit(damage: int) -> int:
 	return damage
 
 func _apply_lifesteal(world: ECSWorld, source_id: int, damage: int) -> void:
-	var ls = GameManager.stat_bonuses.get("life_steal", 0.0)
-	if ls <= 0:
-		return
 	var wedata = world.weapon_entities.get(source_id, {})
 	if wedata.is_empty():
 		return
 	var owner_id = wedata.get("owner_id", -1)
-	if not world.healths.has(owner_id):
+	if owner_id == -1:
 		return
-	var heal = int(damage * ls)
-	if heal > 0:
-		var hp = world.healths[owner_id]
-		hp["current_hp"] = min(hp["current_hp"] + heal, hp["max_hp"])
+	_health_system.apply_lifesteal(owner_id, damage, world)
 
 func _shoot(world: ECSWorld, source_id: int, weapon: Dictionary, target_id: int, owner_id: int) -> void:
 	if not world.transforms.has(source_id) or not world.transforms.has(target_id):
+		return
+
+	if world.projectiles.size() >= 120:
 		return
 
 	var src_pos = world.transforms[source_id]["position"]
@@ -188,6 +244,8 @@ func _shoot(world: ECSWorld, source_id: int, weapon: Dictionary, target_id: int,
 	var half_spread = deg_to_rad(spread_deg) * (count - 1) / 2.0
 
 	for i in range(count):
+		if world.projectiles.size() >= 120:
+			break
 		var angle_offset = 0.0
 		if count > 1:
 			angle_offset = -half_spread + deg_to_rad(spread_deg) * i
@@ -208,8 +266,10 @@ func _shoot(world: ECSWorld, source_id: int, weapon: Dictionary, target_id: int,
 			weapon["bullet_shape"],
 			weapon["bullet_color"],
 			owner_id,
-			3.0,
-			pierce
+			1.5,
+			pierce,
+			weapon.get("explosion", 0),
+			weapon.get("explosion_damage", 0)
 		)
 
 func _hex_to_color(hex: String) -> Color:
